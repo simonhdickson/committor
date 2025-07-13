@@ -2,7 +2,7 @@
 
 Automatically generate conventional commit messages based on your git diff using AI.
 
-Commitor is a Rust CLI tool that analyzes your staged git changes and generates conventional commit messages using OpenAI's GPT models. Say goodbye to writer's block when crafting commit messages!
+Commitor is a Rust CLI tool that analyzes your staged git changes and generates conventional commit messages using AI models from OpenAI or Ollama. Say goodbye to writer's block when crafting commit messages!
 
 ✅ **COMPLETE**: Full implementation with AI-powered analysis and conventional commit generation!
 
@@ -10,7 +10,7 @@ Commitor is a Rust CLI tool that analyzes your staged git changes and generates 
 
 This project successfully demonstrates a complete Rust application that:
 
-- **Integrates with OpenAI's GPT models** using the rig.rs library
+- **Integrates with multiple AI providers** - OpenAI GPT models and Ollama local models
 - **Analyzes git diffs** to understand code changes
 - **Generates conventional commit messages** following industry standards
 - **Provides a CLI interface** with multiple commands and options
@@ -21,11 +21,12 @@ This project successfully demonstrates a complete Rust application that:
 
 ## Features
 
-- 🤖 **AI-Powered**: Uses OpenAI GPT models to analyze your code changes
+- 🤖 **AI-Powered**: Uses OpenAI GPT models or Ollama local models to analyze your code changes
 - 📝 **Conventional Commits**: Generates messages following the conventional commit format
 - 🎯 **Multiple Options**: Generate multiple commit message suggestions to choose from
 - ⚡ **Fast**: Built in Rust for optimal performance
-- 🔧 **Flexible**: Supports different models and customization options
+- 🔧 **Flexible**: Supports different providers, models and customization options
+- 🏠 **Local Support**: Use Ollama for completely local AI processing
 - 🎨 **Beautiful Output**: Colorized terminal output for better readability
 
 ## Installation
@@ -34,17 +35,21 @@ This project successfully demonstrates a complete Rust application that:
 
 - Rust 1.70+ (install from [rustup.rs](https://rustup.rs/))
 - Git
-- OpenAI API key
+- One of the following:
+  - OpenAI API key (for OpenAI provider)
+  - Ollama installation (for local AI processing)
 
 ### Install from source
 
 ```bash
-git clone https://github.com/yourusername/commitor.git
+git clone https://github.com/simonhdickson/commitor.git
 cd commitor
 cargo install --path .
 ```
 
 ## Configuration
+
+### OpenAI Setup
 
 Set your OpenAI API key as an environment variable:
 
@@ -53,6 +58,18 @@ export OPENAI_API_KEY="your-api-key-here"
 ```
 
 Or pass it directly using the `--api-key` flag.
+
+### Ollama Setup
+
+1. Install Ollama from [ollama.ai](https://ollama.ai)
+2. Start the Ollama service:
+```bash
+ollama serve
+```
+3. Pull a model (e.g., llama2):
+```bash
+ollama pull llama2
+```
 
 ## Usage
 
@@ -63,12 +80,17 @@ Or pass it directly using the `--api-key` flag.
 git add .
 ```
 
-2. Generate commit messages:
+2. Generate commit messages with OpenAI (default):
 ```bash
 commitor generate
 ```
 
-3. Or generate and commit in one step:
+3. Or use Ollama for local processing:
+```bash
+commitor --provider ollama --model llama2 generate
+```
+
+4. Generate and commit in one step:
 ```bash
 commitor commit
 ```
@@ -79,28 +101,38 @@ commitor commit
 commitor [OPTIONS] [COMMAND]
 
 Commands:
-  generate  Generate a commit message for staged changes
-  commit    Generate and commit in one step
-  diff      Show the current git diff
+  generate      Generate a commit message for staged changes
+  commit        Generate and commit in one step
+  diff          Show the current git diff
+  models        List available models for the selected provider
+  check-ollama  Check if Ollama is available (only for Ollama provider)
 
 Options:
-  --api-key <API_KEY>    OpenAI API key [env: OPENAI_API_KEY]
-  --model <MODEL>        Model to use for generation [default: gpt-4]
-  --count <COUNT>        Maximum number of commit message options to generate [default: 3]
-  -y, --auto-commit      Automatically use the first generated commit message
-  --show-diff            Show the git diff before generating commit message
-  -h, --help             Print help
-  -V, --version          Print version
+  --provider <PROVIDER>        AI provider to use [default: openai] [possible values: openai, ollama]
+  --api-key <API_KEY>          OpenAI API key [env: OPENAI_API_KEY]
+  --ollama-url <OLLAMA_URL>    Ollama base URL [default: http://localhost:11434]
+  --ollama-timeout <TIMEOUT>   Timeout for Ollama requests in seconds [default: 30]
+  --model <MODEL>              Model to use for generation [default: gpt-4]
+  --count <COUNT>              Maximum number of commit message options to generate [default: 3]
+  -y, --auto-commit            Automatically use the first generated commit message
+  --show-diff                  Show the git diff before generating commit message
+  -h, --help                   Print help
+  -V, --version                Print version
 ```
 
 ### Examples
 
-**Generate multiple commit message options:**
+**Generate multiple commit message options with OpenAI:**
 ```bash
 commitor generate --count 5
 ```
 
-**Use a different model:**
+**Use Ollama with a local model:**
+```bash
+commitor --provider ollama --model llama2 generate
+```
+
+**Use a different OpenAI model:**
 ```bash
 commitor generate --model gpt-3.5-turbo
 ```
@@ -113,6 +145,21 @@ commitor commit --auto-commit
 **Show diff before generating:**
 ```bash
 commitor generate --show-diff
+```
+
+**List available models:**
+```bash
+commitor models --provider ollama
+```
+
+**Check Ollama availability:**
+```bash
+commitor check-ollama
+```
+
+**Use custom Ollama URL:**
+```bash
+commitor --provider ollama --ollama-url http://localhost:11434 --model codellama generate
 ```
 
 ## Conventional Commit Format
@@ -149,14 +196,29 @@ Commitor generates messages following the [Conventional Commits](https://www.con
 You can customize the behavior by setting environment variables:
 
 ```bash
-# Set your OpenAI API key
+# Set your OpenAI API key (for OpenAI provider)
 export OPENAI_API_KEY="sk-..."
 
-# Set default model
+# Set default model (applies to both providers)
 export COMMITOR_MODEL="gpt-4"
 
 # Set default count
 export COMMITOR_COUNT="3"
+```
+
+### Ollama Models
+
+Popular models you can use with Ollama:
+
+- `llama2`: General purpose model
+- `codellama`: Optimized for code understanding
+- `mistral`: Fast and efficient model
+- `neural-chat`: Good for conversational tasks
+- `deepseek-coder`: Specialized for coding tasks
+
+Pull models using:
+```bash
+ollama pull <model-name>
 ```
 
 ## Contributing
@@ -182,7 +244,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- Built with [rig.rs](https://github.com/0xPlaygrounds/rig) for AI integration
+- Built with [rig.rs](https://github.com/0xPlaygrounds/rig) for unified AI provider integration (OpenAI and Ollama)
+- [Ollama](https://ollama.ai) for local AI model support
 - Inspired by the [Conventional Commits](https://www.conventionalcommits.org/) specification
 - Uses [git2](https://github.com/rust-lang/git2-rs) for git operations
 
@@ -198,13 +261,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Stage your changes first with `git add <files>`
 - Check staged changes with `git status`
 
-**"OpenAI API key not found"**
+**"OpenAI API key not found"** (OpenAI provider)
 - Set the `OPENAI_API_KEY` environment variable
 - Or use the `--api-key` flag
 
-**API rate limits**
+**"Ollama is not available"** (Ollama provider)
+- Make sure Ollama is installed and running: `ollama serve`
+- Check if Ollama is accessible: `commitor check-ollama`
+- Verify the URL is correct with `--ollama-url`
+
+**API rate limits** (OpenAI provider)
 - The tool respects OpenAI's rate limits
 - If you hit limits, wait a moment and try again
+
+**Model not found** (Ollama provider)
+- Pull the model first: `ollama pull <model-name>`
+- List available models: `commitor models --provider ollama`
 
 ### Debug Mode
 
@@ -231,17 +303,19 @@ RUST_LOG=debug commitor generate
 
 **Key Technical Achievements:**
 - Built with **Rust** for performance and safety
-- Uses **rig.rs** for AI model integration
+- Uses **rig.rs** for unified AI provider integration (OpenAI and Ollama)
 - Implements **conventional commits** specification
 - Features **async/await** for non-blocking operations
 - Includes **colored terminal output** for better UX
 - Has **comprehensive documentation** and examples
-- Supports **multiple OpenAI models** (GPT-4, GPT-3.5-turbo, etc.)
+- Supports **multiple AI models** across different providers
 
 **Future Roadmap:**
-- [ ] Support for more AI providers (Anthropic, local models)
+- [x] Support for local models via Ollama
+- [ ] Support for more AI providers (Anthropic, Claude)
 - [ ] Configuration file support
 - [ ] Advanced git hooks integration
 - [ ] Commit message templates
 - [ ] Enhanced scope detection
 - [ ] Batch processing for multiple commits
+- [ ] Custom prompt templates

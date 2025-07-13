@@ -171,8 +171,8 @@ pub enum CommitorError {
     #[error("No staged changes found")]
     NoStagedChanges,
 
-    #[error("OpenAI API error: {0}")]
-    OpenAIError(String),
+    #[error("AI Provider error: {0}")]
+    AIProviderError(String),
 
     #[error("Git operation failed: {0}")]
     GitError(String),

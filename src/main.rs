@@ -1,8 +1,9 @@
 use anyhow::{Context, Result};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use colored::*;
-use commitor::{commit, Commitor, Config};
+use commitor::{commit, providers, Commitor, Config};
 use std::env;
+use std::time::Duration;
 use tracing::{info, warn};
 
 #[derive(Parser)]
@@ -13,12 +14,24 @@ struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
 
+    /// AI provider to use
+    #[arg(long, value_enum, default_value = "openai")]
+    provider: AIProviderType,
+
     /// OpenAI API key (can also be set via OPENAI_API_KEY environment variable)
     #[arg(long, env = "OPENAI_API_KEY")]
     api_key: Option<String>,
 
+    /// Ollama base URL
+    #[arg(long, default_value = "http://localhost:11434")]
+    ollama_url: String,
+
+    /// Timeout for Ollama requests in seconds
+    #[arg(long, default_value = "30")]
+    ollama_timeout: u64,
+
     /// Model to use for generation
-    #[arg(long, default_value = "gpt-4")]
+    #[arg(long, default_value = "llama2:7b")]
     model: String,
 
     /// Maximum number of commit message options to generate
@@ -34,6 +47,14 @@ struct Cli {
     show_diff: bool,
 }
 
+#[derive(Clone, Debug, ValueEnum)]
+enum AIProviderType {
+    #[value(name = "openai")]
+    OpenAI,
+    #[value(name = "ollama")]
+    Ollama,
+}
+
 #[derive(Subcommand, Clone)]
 enum Commands {
     /// Generate a commit message for staged changes
@@ -42,6 +63,10 @@ enum Commands {
     Commit,
     /// Show the current git diff
     Diff,
+    /// List available models for the selected provider
+    Models,
+    /// Check if Ollama is available (only for Ollama provider)
+    CheckOllama,
 }
 
 #[tokio::main]
@@ -55,40 +80,67 @@ async fn main() -> Result<()> {
 
     match cli.command.clone().unwrap_or(Commands::Generate) {
         Commands::Generate => {
-            let commitor = create_commitor(&cli)?;
+            let commitor = create_commitor(&cli).await?;
             handle_generate_command(&commitor, &cli).await?;
         }
         Commands::Commit => {
-            let commitor = create_commitor(&cli)?;
+            let commitor = create_commitor(&cli).await?;
             handle_commit_command(&commitor, &cli).await?;
         }
         Commands::Diff => {
             handle_diff_command()?;
+        }
+        Commands::Models => {
+            handle_models_command(&cli).await?;
+        }
+        Commands::CheckOllama => {
+            handle_check_ollama_command(&cli).await?;
         }
     }
 
     Ok(())
 }
 
-fn create_commitor(cli: &Cli) -> Result<Commitor> {
-    let api_key = cli
-        .api_key
-        .clone()
-        .or_else(|| env::var("OPENAI_API_KEY").ok())
-        .context(
-            "OpenAI API key not found. Set OPENAI_API_KEY environment variable or use --api-key",
-        )?;
+async fn create_commitor(cli: &Cli) -> Result<Commitor> {
+    let config = match cli.provider {
+        AIProviderType::OpenAI => {
+            let api_key = cli
+                .api_key
+                .clone()
+                .or_else(|| env::var("OPENAI_API_KEY").ok())
+                .context(
+                    "OpenAI API key not found. Set OPENAI_API_KEY environment variable or use --api-key",
+                )?;
 
-    // Create configuration
-    let config = Config::with_options(
-        api_key,
-        cli.model.clone(),
-        cli.count,
-        cli.auto_commit,
-        cli.show_diff,
-    );
+            Config::with_openai(
+                api_key,
+                cli.model.clone(),
+                cli.count,
+                cli.auto_commit,
+                cli.show_diff,
+            )
+        }
+        AIProviderType::Ollama => {
+            // Check if Ollama is available
+            if !providers::check_ollama_availability(&cli.ollama_url, &cli.model).await? {
+                return Err(anyhow::anyhow!(
+                    "Ollama is not available at {}. Please make sure Ollama is running.",
+                    cli.ollama_url
+                ));
+            }
 
-    Ok(Commitor::new(config))
+            Config::with_ollama_timeout(
+                cli.ollama_url.clone(),
+                cli.model.clone(),
+                Duration::from_secs(cli.ollama_timeout),
+                cli.count,
+                cli.auto_commit,
+                cli.show_diff,
+            )
+        }
+    };
+
+    Commitor::new(config)
 }
 
 async fn handle_generate_command(commitor: &Commitor, cli: &Cli) -> Result<()> {
@@ -164,5 +216,86 @@ fn handle_diff_command() -> Result<()> {
     } else {
         println!("{}", diff_content);
     }
+    Ok(())
+}
+
+async fn handle_models_command(cli: &Cli) -> Result<()> {
+    match cli.provider {
+        AIProviderType::OpenAI => {
+            println!("{}", "Available OpenAI models:".green().bold());
+            let models = vec!["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-3.5-turbo-16k"];
+            for model in models {
+                println!("  {}", model);
+            }
+        }
+        AIProviderType::Ollama => {
+            if !providers::check_ollama_availability(&cli.ollama_url, &cli.model).await? {
+                return Err(anyhow::anyhow!(
+                    "Ollama is not available at {}. Please make sure Ollama is running.",
+                    cli.ollama_url
+                ));
+            }
+
+            println!("{}", "Available Ollama models:".green().bold());
+            let models = providers::get_ollama_models(&cli.ollama_url).await?;
+            if models.is_empty() {
+                println!(
+                    "  {}",
+                    "No models found. You may need to pull some models first.".yellow()
+                );
+                println!("  {}", "Example: ollama pull llama2".cyan());
+            } else {
+                for model in models {
+                    println!("  {}", model);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn handle_check_ollama_command(cli: &Cli) -> Result<()> {
+    println!(
+        "{}",
+        format!("Checking Ollama availability at {}...", cli.ollama_url).cyan()
+    );
+
+    match providers::check_ollama_availability(&cli.ollama_url, &cli.model).await {
+        Ok(true) => {
+            println!("{}", "✓ Ollama is available!".green().bold());
+
+            // Also show available models
+            match providers::get_ollama_models(&cli.ollama_url).await {
+                Ok(models) => {
+                    if models.is_empty() {
+                        println!(
+                            "{}",
+                            "No models found. You may need to pull some models first.".yellow()
+                        );
+                        println!("{}", "Example: ollama pull llama2".cyan());
+                    } else {
+                        println!(
+                            "{}",
+                            format!("Available models: {}", models.join(", ")).cyan()
+                        );
+                    }
+                }
+                Err(e) => {
+                    warn!("Could not fetch models: {}", e);
+                }
+            }
+        }
+        Ok(false) => {
+            println!("{}", "✗ Ollama is not available".red().bold());
+            println!(
+                "{}",
+                "Make sure Ollama is running and accessible at the specified URL.".yellow()
+            );
+        }
+        Err(e) => {
+            return Err(anyhow::anyhow!("Error checking Ollama: {}", e));
+        }
+    }
+
     Ok(())
 }

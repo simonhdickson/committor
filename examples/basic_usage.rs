@@ -1,99 +1,152 @@
-//! Basic usage examples for the commitor library
+//! Basic usage examples for the Commitor library
 //!
-//! This file demonstrates how to use the commitor library programmatically
-//! to generate conventional commit messages.
+//! This example demonstrates how to use the Commitor library with both OpenAI and Ollama providers.
 
 use anyhow::Result;
-use commitor::{commit, diff, prompt, Commitor, Config};
+use commitor::{diff, Commitor, Config};
+use std::env;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize logging
-    tracing_subscriber::fmt::init();
+    println!("🚀 Commitor Basic Usage Examples");
+    println!("=================================");
 
-    println!("🚀 Commitor Basic Usage Examples\n");
+    // Example 1: Basic OpenAI usage
+    println!("\n1. Basic OpenAI Usage");
+    println!("---------------------");
+    basic_openai_example().await?;
 
-    // Example 1: Basic usage with environment API key
-    example_basic_usage().await?;
+    // Example 2: Basic Ollama usage
+    println!("\n2. Basic Ollama Usage");
+    println!("---------------------");
+    basic_ollama_example().await?;
 
-    // Example 2: Custom configuration
-    example_custom_config().await?;
+    // Example 3: Custom configuration with OpenAI
+    println!("\n3. Custom OpenAI Configuration");
+    println!("------------------------------");
+    custom_openai_config_example().await?;
 
-    // Example 3: Analyzing git diff manually
-    example_manual_diff_analysis().await?;
+    // Example 4: Custom configuration with Ollama
+    println!("\n4. Custom Ollama Configuration");
+    println!("------------------------------");
+    custom_ollama_config_example().await?;
 
-    // Example 4: Validating commit messages
-    example_commit_validation()?;
+    // Example 5: Error handling
+    println!("\n5. Error Handling Example");
+    println!("-------------------------");
+    error_handling_example().await?;
 
-    // Example 5: Getting repository context
-    example_repository_context()?;
+    println!("\n✅ All examples completed!");
+    Ok(())
+}
+
+/// Example 1: Basic usage with OpenAI provider
+async fn basic_openai_example() -> Result<()> {
+    // Check if API key is available
+    if env::var("OPENAI_API_KEY").is_err() {
+        println!("⚠️  OPENAI_API_KEY not set, skipping OpenAI examples");
+        println!("   Set your API key: export OPENAI_API_KEY=\"your-key-here\"");
+        return Ok(());
+    }
+
+    // Check if we have staged changes
+    if !diff::has_staged_changes()? {
+        println!("⚠️  No staged changes found for OpenAI example");
+        println!("   Stage some changes first: git add <files>");
+        return Ok(());
+    }
+
+    // Create default configuration (uses OpenAI by default)
+    let config = Config::new()?;
+    let commitor = Commitor::new(config)?;
+
+    // Get the diff
+    let diff = commitor.get_staged_diff()?;
+    println!("📝 Staged diff found ({} characters)", diff.len());
+
+    // Generate commit messages
+    println!("🤖 Generating commit messages with OpenAI...");
+    match commitor.generate_commit_messages(&diff).await {
+        Ok(messages) => {
+            println!("✅ Generated {} commit messages:", messages.len());
+            for (i, message) in messages.iter().enumerate() {
+                println!("   {}. {}", i + 1, message);
+            }
+        }
+        Err(e) => {
+            println!("❌ Error generating messages: {}", e);
+        }
+    }
 
     Ok(())
 }
 
-/// Example 1: Basic usage with default configuration
-async fn example_basic_usage() -> Result<()> {
-    println!("📋 Example 1: Basic Usage");
-    println!("{}", "─".repeat(40));
-
+/// Example 2: Basic usage with Ollama provider
+async fn basic_ollama_example() -> Result<()> {
     // Check if we have staged changes
     if !diff::has_staged_changes()? {
-        println!("⚠️  No staged changes found. Please stage some changes first with 'git add'");
+        println!("⚠️  No staged changes found for Ollama example");
+        println!("   Stage some changes first: git add <files>");
         return Ok(());
     }
 
-    // Create commitor with default config (requires OPENAI_API_KEY env var)
-    match Config::new() {
-        Ok(config) => {
-            let commitor = Commitor::new(config);
+    // Create Ollama configuration
+    let config = Config::with_ollama(
+        "http://localhost:11434".to_string(),
+        "llama2".to_string(),
+        3,     // Generate 3 options
+        false, // Don't auto-commit
+        false, // Don't show diff
+    );
 
-            // Get the staged diff
+    match Commitor::new(config) {
+        Ok(commitor) => {
+            // Get the diff
             let diff = commitor.get_staged_diff()?;
-            println!("📄 Current staged diff preview:");
-            println!("{}", &diff[..diff.len().min(200)]);
-            if diff.len() > 200 {
-                println!("... (truncated)");
-            }
+            println!("📝 Staged diff found ({} characters)", diff.len());
 
             // Generate commit messages
-            println!("\n🤖 Generating commit messages...");
+            println!("🦙 Generating commit messages with Ollama...");
             match commitor.generate_commit_messages(&diff).await {
                 Ok(messages) => {
                     println!("✅ Generated {} commit messages:", messages.len());
                     for (i, message) in messages.iter().enumerate() {
-                        println!("  {}. {}", i + 1, message);
+                        println!("   {}. {}", i + 1, message);
                     }
                 }
                 Err(e) => {
-                    println!("❌ Failed to generate commit messages: {}", e);
+                    println!("❌ Error generating messages: {}", e);
                 }
             }
         }
-        Err(_) => {
-            println!("⚠️  OPENAI_API_KEY environment variable not set. Skipping this example.");
+        Err(e) => {
+            println!("⚠️  Ollama not available: {}", e);
+            println!("   Make sure Ollama is running: ollama serve");
+            println!("   And you have models installed: ollama pull llama2");
         }
     }
 
-    println!();
     Ok(())
 }
 
-/// Example 2: Custom configuration
-async fn example_custom_config() -> Result<()> {
-    println!("⚙️  Example 2: Custom Configuration");
-    println!("{}", "─".repeat(40));
-
-    // Check for API key
-    if std::env::var("OPENAI_API_KEY").is_err() {
-        println!("⚠️  OPENAI_API_KEY environment variable not set. Skipping this example.");
-        println!();
+/// Example 3: Custom configuration with OpenAI
+async fn custom_openai_config_example() -> Result<()> {
+    // Check if API key is available
+    if env::var("OPENAI_API_KEY").is_err() {
+        println!("⚠️  OPENAI_API_KEY not set, skipping custom OpenAI example");
         return Ok(());
     }
 
-    let api_key = std::env::var("OPENAI_API_KEY")?;
+    // Check if we have staged changes
+    if !diff::has_staged_changes()? {
+        println!("⚠️  No staged changes found for custom OpenAI example");
+        return Ok(());
+    }
+
+    let api_key = env::var("OPENAI_API_KEY")?;
 
     // Create custom configuration
-    let config = Config::with_options(
+    let config = Config::with_openai(
         api_key,
         "gpt-3.5-turbo".to_string(), // Use a different model
         5,                           // Generate 5 options
@@ -101,241 +154,177 @@ async fn example_custom_config() -> Result<()> {
         true,                        // Show diff
     );
 
-    let commitor = Commitor::new(config);
+    let commitor = Commitor::new(config)?;
 
-    // Check if we have staged changes
-    if !diff::has_staged_changes()? {
-        println!("⚠️  No staged changes found for custom config example");
-        println!();
-        return Ok(());
+    // Get the diff
+    let diff = commitor.get_staged_diff()?;
+    println!("📝 Staged diff found ({} characters)", diff.len());
+    println!("📄 Diff content preview:");
+    println!("{}", diff.chars().take(200).collect::<String>());
+    if diff.len() > 200 {
+        println!("... (truncated)");
     }
 
-    let diff = commitor.get_staged_diff()?;
-    println!("📊 Using custom config: gpt-3.5-turbo, 5 options");
-
+    // Generate commit messages
+    println!("🤖 Generating 5 commit messages with GPT-3.5-turbo...");
     match commitor.generate_commit_messages(&diff).await {
         Ok(messages) => {
-            println!("✅ Generated {} commit message options:", messages.len());
+            println!("✅ Generated {} commit messages:", messages.len());
             for (i, message) in messages.iter().enumerate() {
-                println!("  {}. {}", i + 1, message);
+                println!("   {}. {}", i + 1, message);
             }
         }
         Err(e) => {
-            println!("❌ Failed to generate commit messages: {}", e);
+            println!("❌ Error generating messages: {}", e);
         }
     }
 
-    println!();
     Ok(())
 }
 
-/// Example 3: Manual diff analysis
-async fn example_manual_diff_analysis() -> Result<()> {
-    println!("🔍 Example 3: Manual Diff Analysis");
-    println!("{}", "─".repeat(40));
+/// Example 4: Custom configuration with Ollama
+async fn custom_ollama_config_example() -> Result<()> {
+    // Check if we have staged changes
+    if !diff::has_staged_changes()? {
+        println!("⚠️  No staged changes found for custom Ollama example");
+        return Ok(());
+    }
 
-    // Create a sample diff for demonstration
-    let sample_diff = r#"
-diff --git a/src/auth.rs b/src/auth.rs
+    // Create custom Ollama configuration with timeout
+    let config = Config::with_ollama_timeout(
+        "http://localhost:11434".to_string(),
+        "codellama".to_string(),
+        std::time::Duration::from_secs(60), // 60 second timeout
+        3,                                  // Generate 3 options
+        false,                              // Don't auto-commit
+        true,                               // Show diff
+    );
+
+    match Commitor::new(config) {
+        Ok(commitor) => {
+            // Get the diff
+            let diff = commitor.get_staged_diff()?;
+            println!("📝 Staged diff found ({} characters)", diff.len());
+            println!("📄 Diff content preview:");
+            println!("{}", diff.chars().take(200).collect::<String>());
+            if diff.len() > 200 {
+                println!("... (truncated)");
+            }
+
+            // Generate commit messages
+            println!("🦙 Generating commit messages with CodeLlama (60s timeout)...");
+            match commitor.generate_commit_messages(&diff).await {
+                Ok(messages) => {
+                    println!("✅ Generated {} commit messages:", messages.len());
+                    for (i, message) in messages.iter().enumerate() {
+                        println!("   {}. {}", i + 1, message);
+                    }
+                }
+                Err(e) => {
+                    println!("❌ Error generating messages: {}", e);
+                }
+            }
+        }
+        Err(e) => {
+            println!("⚠️  Ollama not available: {}", e);
+            println!("   Make sure Ollama is running: ollama serve");
+            println!("   And you have CodeLlama installed: ollama pull codellama");
+        }
+    }
+
+    Ok(())
+}
+
+/// Example 5: Error handling patterns
+async fn error_handling_example() -> Result<()> {
+    println!("📚 Demonstrating error handling patterns...");
+
+    // Example: Invalid API key
+    if env::var("OPENAI_API_KEY").is_ok() {
+        let config = Config::with_openai(
+            "invalid-api-key".to_string(),
+            "gpt-4".to_string(),
+            1,
+            false,
+            false,
+        );
+
+        match Commitor::new(config) {
+            Ok(commitor) => {
+                // This will succeed but the API call will fail
+                let sample_diff = r#"
+diff --git a/README.md b/README.md
 index 1234567..abcdefg 100644
---- a/src/auth.rs
-+++ b/src/auth.rs
-@@ -1,5 +1,8 @@
- use jwt::TokenData;
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,4 @@
+ # My Project
 
-+/// Validates JWT tokens
-+pub fn validate_jwt_token(token: &str) -> Result<TokenData, Error> {
-+    // Implementation here
-+}
-+
- pub struct AuthService {
-     secret: String,
- }
+ This is a sample project.
++Added a new line for testing.
 "#;
 
-    // Get structured information about changes
-    let changes = diff::get_staged_changes().unwrap_or_default();
-    if !changes.is_empty() {
-        println!("📁 Current staged changes:");
-        for change in &changes {
-            println!(
-                "  {} {} (+{}, -{})",
-                change.change_type, change.file_path, change.additions, change.deletions
-            );
-        }
-    } else {
-        println!("📁 No real staged changes, using sample diff for analysis");
-    }
-
-    // Analyze the diff type and suggest commit types
-    let suggested_types = prompt::suggest_commit_type(&changes);
-    if !suggested_types.is_empty() {
-        println!("💡 Suggested commit types based on file changes:");
-        for commit_type in suggested_types {
-            println!("  - {}: {}", commit_type, commit_type.description());
-        }
-    }
-
-    // Get repository context
-    let mut context = prompt::RepositoryContext::new();
-    context.language = prompt::RepositoryContext::detect_language(&changes);
-    context.project_type = prompt::RepositoryContext::detect_project_type(&changes);
-
-    println!("🏗️  Repository context:");
-    println!("  Language: {}", context.language);
-    println!("  Project Type: {}", context.project_type);
-
-    println!();
-    Ok(())
-}
-
-/// Example 4: Commit message validation
-fn example_commit_validation() -> Result<()> {
-    println!("✅ Example 4: Commit Message Validation");
-    println!("{}", "─".repeat(40));
-
-    let test_messages = vec![
-        "feat(auth): add JWT token validation",
-        "fix: resolve login issue",
-        "docs: update README",
-        "invalid commit message",
-        "feat: this is a very long commit message that exceeds the recommended length limit",
-        "refactor(utils): simplify helper functions",
-        "test: add unit tests for auth module",
-    ];
-
-    for message in test_messages {
-        let is_valid = commit::is_valid_commit_message(message);
-        let status = if is_valid { "✅" } else { "❌" };
-        println!("{} {}", status, message);
-
-        // Try to parse valid messages
-        if is_valid {
-            match commit::parse_commit_message(message) {
-                Ok(parsed) => {
-                    println!(
-                        "  📋 Type: {}, Scope: {:?}, Breaking: {}",
-                        parsed.commit_type, parsed.scope, parsed.breaking
-                    );
-                }
-                Err(_) => {
-                    println!("  ⚠️  Failed to parse (unexpected)");
+                match commitor.generate_commit_messages(sample_diff).await {
+                    Ok(_) => println!("🤔 This shouldn't happen with invalid key"),
+                    Err(e) => println!("✅ Correctly caught invalid API key error: {}", e),
                 }
             }
+            Err(e) => println!("✅ Correctly caught config error: {}", e),
         }
     }
 
-    println!();
-    Ok(())
-}
-
-/// Example 5: Repository context detection
-fn example_repository_context() -> Result<()> {
-    println!("📋 Example 5: Repository Context");
-    println!("{}", "─".repeat(40));
-
-    // Check git environment
-    match commit::validate_git_environment() {
-        Ok(_) => println!("✅ Git environment is valid"),
-        Err(e) => println!("❌ Git environment issue: {}", e),
-    }
-
-    // Get current branch
-    match commit::get_current_branch() {
-        Ok(branch) => println!("🌿 Current branch: {}", branch),
-        Err(e) => println!("⚠️  Could not get branch: {}", e),
-    }
-
-    // Check for uncommitted changes
-    match commit::has_uncommitted_changes() {
-        Ok(has_changes) => {
-            if has_changes {
-                println!("📝 There are uncommitted changes");
-            } else {
-                println!("✨ Working directory is clean");
-            }
-        }
-        Err(e) => println!("⚠️  Could not check status: {}", e),
-    }
-
-    // Get last commit message
-    match commit::get_last_commit_message() {
-        Ok(message) => println!("💬 Last commit: {}", message),
-        Err(e) => println!("⚠️  Could not get last commit: {}", e),
-    }
-
-    // Get diff summary
-    match diff::get_diff_summary() {
-        Ok(summary) => println!("📊 Diff summary:\n{}", summary),
-        Err(e) => println!("⚠️  Could not get diff summary: {}", e),
-    }
-
-    println!();
-    Ok(())
-}
-
-/// Example helper function to demonstrate library usage in other contexts
-pub async fn generate_commit_for_diff(diff_content: &str, api_key: &str) -> Result<String> {
-    let config = Config::with_options(
-        api_key.to_string(),
-        "gpt-4".to_string(),
-        1, // Just one message
+    // Example: Ollama not available
+    let config = Config::with_ollama(
+        "http://localhost:99999".to_string(), // Invalid port
+        "nonexistent-model".to_string(),
+        1,
         false,
         false,
     );
 
-    let commitor = Commitor::new(config);
-    let messages = commitor.generate_commit_messages(diff_content).await?;
+    match Commitor::new(config) {
+        Ok(_) => println!("🤔 This shouldn't succeed with invalid URL"),
+        Err(e) => println!("✅ Correctly caught Ollama connection error: {}", e),
+    }
 
-    messages
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow::anyhow!("No commit message generated"))
-}
-
-/// Example of batch processing multiple diffs
-pub async fn batch_process_commits(diffs: Vec<String>, api_key: &str) -> Result<Vec<String>> {
-    let config = Config::with_options(api_key.to_string(), "gpt-4".to_string(), 1, false, false);
-
-    let commitor = Commitor::new(config);
-    let mut results = Vec::new();
-
-    for diff in diffs {
-        match commitor.generate_commit_messages(&diff).await {
-            Ok(messages) => {
-                if let Some(message) = messages.into_iter().next() {
-                    results.push(message);
-                }
-            }
-            Err(e) => {
-                eprintln!("Failed to process diff: {}", e);
+    // Example: No staged changes
+    match diff::get_staged_diff() {
+        Ok(diff) => {
+            if diff.is_empty() {
+                println!("✅ Correctly detected no staged changes");
+            } else {
+                println!("📝 Found staged changes ({} chars)", diff.len());
             }
         }
+        Err(e) => println!("✅ Correctly caught git error: {}", e),
     }
 
-    Ok(results)
+    Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Example 6: Working with different diff scenarios
+#[allow(dead_code)]
+async fn diff_scenarios_example() -> Result<()> {
+    println!("📋 Testing different diff scenarios...");
 
-    #[tokio::test]
-    async fn test_generate_commit_for_diff() {
-        if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
-            let diff = "diff --git a/test.txt b/test.txt\n+Hello, world!";
-            let result = generate_commit_for_diff(diff, &api_key).await;
-            assert!(result.is_ok());
-        }
+    // This would be used if we had a test repository setup
+    let sample_scenarios = vec![
+        ("feat: add user authentication", "Added login functionality"),
+        (
+            "fix: resolve memory leak",
+            "Fixed buffer overflow in parser",
+        ),
+        ("docs: update README", "Updated installation instructions"),
+        (
+            "refactor: simplify error handling",
+            "Consolidated error types",
+        ),
+    ];
+
+    for (expected_type, description) in sample_scenarios {
+        println!("🎯 Scenario: {} - {}", expected_type, description);
+        // In a real scenario, we'd create the changes and test the AI generation
     }
 
-    #[test]
-    fn test_commit_validation_examples() {
-        assert!(commit::is_valid_commit_message("feat: add new feature"));
-        assert!(commit::is_valid_commit_message(
-            "fix(auth): resolve login bug"
-        ));
-        assert!(!commit::is_valid_commit_message("invalid message"));
-        assert!(!commit::is_valid_commit_message("feat: ".repeat(100)));
-    }
+    Ok(())
 }

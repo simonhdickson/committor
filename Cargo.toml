@@ -3,9 +3,9 @@ name = "commitor"
 version = "0.1.0"
 edition = "2021"
 description = "Automatically generate conventional commit messages based on git diff using AI"
-authors = ["Your Name <your.email@example.com>"]
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/yourusername/commitor"
+authors = ["Simon Dickson <683945+simonhdickson@users.noreply.github.com>"]
+license = "MIT"
+repository = "https://github.com/simonhdickson/commitor"
 keywords = ["git", "commit", "conventional", "ai", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 
@@ -26,6 +26,7 @@ tracing = "0.1"
 tracing-subscriber = "0.3"
 colored = "2.0"
 thiserror = "1.0"
+async-trait = "0.1"
 
 [dev-dependencies]
 tempfile = "3.8"

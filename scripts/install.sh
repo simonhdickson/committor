@@ -74,7 +74,7 @@ install_commitor() {
         git pull origin main || print_warning "Could not update repository"
     else
         print_status "Cloning commitor repository..."
-        git clone https://github.com/yourusername/commitor.git
+        git clone https://github.com/simonhdickson/commitor.git
         cd commitor
     fi
 
