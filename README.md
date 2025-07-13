@@ -1,0 +1,208 @@
+# Commitor 🚀
+
+Automatically generate conventional commit messages based on your git diff using AI.
+
+Commitor is a Rust CLI tool that analyzes your staged git changes and generates conventional commit messages using OpenAI's GPT models. Say goodbye to writer's block when crafting commit messages!
+
+## Features
+
+- 🤖 **AI-Powered**: Uses OpenAI GPT models to analyze your code changes
+- 📝 **Conventional Commits**: Generates messages following the conventional commit format
+- 🎯 **Multiple Options**: Generate multiple commit message suggestions to choose from
+- ⚡ **Fast**: Built in Rust for optimal performance
+- 🔧 **Flexible**: Supports different models and customization options
+- 🎨 **Beautiful Output**: Colorized terminal output for better readability
+
+## Installation
+
+### Prerequisites
+
+- Rust 1.70+ (install from [rustup.rs](https://rustup.rs/))
+- Git
+- OpenAI API key
+
+### Install from source
+
+```bash
+git clone https://github.com/yourusername/commitor.git
+cd commitor
+cargo install --path .
+```
+
+## Configuration
+
+Set your OpenAI API key as an environment variable:
+
+```bash
+export OPENAI_API_KEY="your-api-key-here"
+```
+
+Or pass it directly using the `--api-key` flag.
+
+## Usage
+
+### Basic Usage
+
+1. Stage your changes:
+```bash
+git add .
+```
+
+2. Generate commit messages:
+```bash
+commitor generate
+```
+
+3. Or generate and commit in one step:
+```bash
+commitor commit
+```
+
+### Command Line Options
+
+```bash
+commitor [OPTIONS] [COMMAND]
+
+Commands:
+  generate  Generate a commit message for staged changes
+  commit    Generate and commit in one step
+  diff      Show the current git diff
+
+Options:
+  --api-key <API_KEY>    OpenAI API key [env: OPENAI_API_KEY]
+  --model <MODEL>        Model to use for generation [default: gpt-4]
+  --count <COUNT>        Maximum number of commit message options to generate [default: 3]
+  -y, --auto-commit      Automatically use the first generated commit message
+  --show-diff            Show the git diff before generating commit message
+  -h, --help             Print help
+  -V, --version          Print version
+```
+
+### Examples
+
+**Generate multiple commit message options:**
+```bash
+commitor generate --count 5
+```
+
+**Use a different model:**
+```bash
+commitor generate --model gpt-3.5-turbo
+```
+
+**Auto-commit with the first suggestion:**
+```bash
+commitor commit --auto-commit
+```
+
+**Show diff before generating:**
+```bash
+commitor generate --show-diff
+```
+
+## Conventional Commit Format
+
+Commitor generates messages following the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+```
+<type>(<scope>): <description>
+```
+
+### Supported Types
+
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation only changes
+- `style`: Changes that do not affect the meaning of the code
+- `refactor`: A code change that neither fixes a bug nor adds a feature
+- `test`: Adding missing tests or correcting existing tests
+- `chore`: Changes to the build process or auxiliary tools
+- `perf`: A code change that improves performance
+- `ci`: Changes to CI configuration files and scripts
+- `build`: Changes that affect the build system or external dependencies
+
+### Example Messages
+
+- `feat(auth): add JWT token validation`
+- `fix(database): resolve connection timeout issue`
+- `docs(readme): update installation instructions`
+- `refactor(utils): simplify string parsing logic`
+- `test(api): add integration tests for user endpoints`
+
+## Configuration
+
+You can customize the behavior by setting environment variables:
+
+```bash
+# Set your OpenAI API key
+export OPENAI_API_KEY="sk-..."
+
+# Set default model
+export COMMITOR_MODEL="gpt-4"
+
+# Set default count
+export COMMITOR_COUNT="3"
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Development Setup
+
+1. Clone the repository
+2. Install dependencies: `cargo build`
+3. Run tests: `cargo test`
+4. Run the tool: `cargo run -- generate`
+
+### Running Tests
+
+```bash
+cargo test
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Built with [rig.rs](https://github.com/0xPlaygrounds/rig) for AI integration
+- Inspired by the [Conventional Commits](https://www.conventionalcommits.org/) specification
+- Uses [git2](https://github.com/rust-lang/git2-rs) for git operations
+
+## Troubleshooting
+
+### Common Issues
+
+**"Not in a git repository"**
+- Make sure you're running the command inside a git repository
+- Initialize a git repository with `git init` if needed
+
+**"No staged changes found"**
+- Stage your changes first with `git add <files>`
+- Check staged changes with `git status`
+
+**"OpenAI API key not found"**
+- Set the `OPENAI_API_KEY` environment variable
+- Or use the `--api-key` flag
+
+**API rate limits**
+- The tool respects OpenAI's rate limits
+- If you hit limits, wait a moment and try again
+
+### Debug Mode
+
+Run with debug logging:
+```bash
+RUST_LOG=debug commitor generate
+```
+
+## Roadmap
+
+- [ ] Support for more AI providers (Anthropic, local models)
+- [ ] Configuration file support
+- [ ] Integration with git hooks
+- [ ] Commit message templates
+- [ ] Support for conventional commit scopes detection
+- [ ] Batch processing for multiple commits
