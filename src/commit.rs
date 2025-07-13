@@ -1,10 +1,10 @@
 //! Commit operations for generating conventional commit messages and executing git commits
 
 use crate::prompt::create_commit_prompt;
+use crate::providers::AIProvider;
 use crate::types::{CommitorError, ConventionalCommit};
 use anyhow::{Context, Result};
 use colored::*;
-use rig::{client::CompletionClient, completion::Prompt, providers::openai};
 use std::io::{self, Write};
 use std::process::Command;
 use std::time::Instant;
@@ -13,14 +13,15 @@ use tracing::{info, warn};
 /// Generate commit messages using AI
 pub async fn generate_commit_messages(
     diff: &str,
-    client: &openai::Client,
-    model: &str,
+    provider: &dyn AIProvider,
     count: u8,
 ) -> Result<Vec<String>> {
-    info!("Generating commit messages using model: {}", model);
+    info!(
+        "Generating commit messages using provider: {}",
+        provider.provider_name()
+    );
 
     let start_time = Instant::now();
-    let agent = client.agent(model).build();
     let prompt = create_commit_prompt(diff);
 
     let mut messages = Vec::new();
@@ -30,7 +31,7 @@ pub async fn generate_commit_messages(
     while messages.len() < count as usize && attempts < max_attempts {
         attempts += 1;
 
-        match agent.prompt(&prompt).await {
+        match provider.generate_message(&prompt).await {
             Ok(response) => {
                 let message = response.trim().to_string();
                 if !message.is_empty() && is_valid_commit_message(&message) {
@@ -47,7 +48,7 @@ pub async fn generate_commit_messages(
                 );
                 if attempts == 1 {
                     // If first attempt fails, return the error
-                    return Err(CommitorError::OpenAIError(e.to_string()).into());
+                    return Err(CommitorError::AIProviderError(e.to_string()).into());
                 }
                 // For subsequent attempts, just continue trying
             }
@@ -62,7 +63,7 @@ pub async fn generate_commit_messages(
     );
 
     if messages.is_empty() {
-        return Err(CommitorError::OpenAIError(
+        return Err(CommitorError::AIProviderError(
             "Failed to generate any valid commit messages".to_string(),
         )
         .into());
