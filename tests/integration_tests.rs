@@ -58,6 +58,7 @@ impl TestRepo {
     }
 
     /// Create a new test repository with proper lifetime management
+    #[allow(dead_code)]
     fn new_with_commit() -> Result<Self, Box<dyn std::error::Error>> {
         let temp_dir = TempDir::new()?;
         let repo = Repository::init(temp_dir.path())?;
@@ -110,6 +111,7 @@ impl TestRepo {
     }
 
     /// Modify an existing file
+    #[allow(dead_code)]
     fn modify_file(&self, filename: &str, content: &str) -> Result<(), Box<dyn std::error::Error>> {
         let file_path = self.path.join(filename);
         fs::write(&file_path, content)?;
@@ -370,7 +372,7 @@ fn test_large_diff_handling() {
 
     // Should not crash on large diffs
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.len() > 0);
+    assert!(!stdout.is_empty());
 }
 
 #[test]
@@ -429,7 +431,7 @@ fn test_error_handling_for_invalid_options() {
         .expect("Failed to execute command");
 
     // Should not crash on invalid model name
-    assert!(true); // Just ensure the command doesn't panic
+    // Just ensure the command doesn't panic - no additional assertion needed
 }
 
 #[test]
@@ -525,7 +527,7 @@ mod api_integration_tests {
         } else {
             // API might fail due to rate limits, network issues, etc.
             let stderr = String::from_utf8_lossy(&output.stderr);
-            println!("API test failed (this might be expected): {}", stderr);
+            println!("API test failed (this might be expected): {stderr}");
         }
     }
 
@@ -560,7 +562,7 @@ mod api_integration_tests {
         // Just verify the generate command works
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            println!("API test failed (this might be expected): {}", stderr);
+            println!("API test failed (this might be expected): {stderr}");
         }
     }
 }
@@ -588,7 +590,6 @@ fn test_performance_basic_operations() {
     // Basic operations should complete within reasonable time (5 seconds)
     assert!(
         duration.as_secs() < 5,
-        "Basic operation took too long: {:?}",
-        duration
+        "Basic operation took too long: {duration:?}"
     );
 }

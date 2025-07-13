@@ -74,7 +74,7 @@ async fn basic_openai_example() -> Result<()> {
             }
         }
         Err(e) => {
-            println!("❌ Error generating messages: {}", e);
+            println!("❌ Error generating messages: {e}");
         }
     }
 
@@ -115,12 +115,12 @@ async fn basic_ollama_example() -> Result<()> {
                     }
                 }
                 Err(e) => {
-                    println!("❌ Error generating messages: {}", e);
+                    println!("❌ Error generating messages: {e}");
                 }
             }
         }
         Err(e) => {
-            println!("⚠️  Ollama not available: {}", e);
+            println!("⚠️  Ollama not available: {e}");
             println!("   Make sure Ollama is running: ollama serve");
             println!("   And you have models installed: ollama pull llama2");
         }
@@ -175,7 +175,7 @@ async fn custom_openai_config_example() -> Result<()> {
             }
         }
         Err(e) => {
-            println!("❌ Error generating messages: {}", e);
+            println!("❌ Error generating messages: {e}");
         }
     }
 
@@ -221,12 +221,12 @@ async fn custom_ollama_config_example() -> Result<()> {
                     }
                 }
                 Err(e) => {
-                    println!("❌ Error generating messages: {}", e);
+                    println!("❌ Error generating messages: {e}");
                 }
             }
         }
         Err(e) => {
-            println!("⚠️  Ollama not available: {}", e);
+            println!("⚠️  Ollama not available: {e}");
             println!("   Make sure Ollama is running: ollama serve");
             println!("   And you have CodeLlama installed: ollama pull codellama");
         }
@@ -266,10 +266,10 @@ index 1234567..abcdefg 100644
 
                 match committor.generate_commit_messages(sample_diff).await {
                     Ok(_) => println!("🤔 This shouldn't happen with invalid key"),
-                    Err(e) => println!("✅ Correctly caught invalid API key error: {}", e),
+                    Err(e) => println!("✅ Correctly caught invalid API key error: {e}"),
                 }
             }
-            Err(e) => println!("✅ Correctly caught config error: {}", e),
+            Err(e) => println!("✅ Correctly caught config error: {e}"),
         }
     }
 
@@ -284,7 +284,7 @@ index 1234567..abcdefg 100644
 
     match Committor::new(config) {
         Ok(_) => println!("🤔 This shouldn't succeed with invalid URL"),
-        Err(e) => println!("✅ Correctly caught Ollama connection error: {}", e),
+        Err(e) => println!("✅ Correctly caught Ollama connection error: {e}"),
     }
 
     // Example: No staged changes
@@ -296,7 +296,7 @@ index 1234567..abcdefg 100644
                 println!("📝 Found staged changes ({} chars)", diff.len());
             }
         }
-        Err(e) => println!("✅ Correctly caught git error: {}", e),
+        Err(e) => println!("✅ Correctly caught git error: {e}"),
     }
 
     Ok(())
@@ -322,7 +322,7 @@ async fn diff_scenarios_example() -> Result<()> {
     ];
 
     for (expected_type, description) in sample_scenarios {
-        println!("🎯 Scenario: {} - {}", expected_type, description);
+        println!("🎯 Scenario: {expected_type} - {description}");
         // In a real scenario, we'd create the changes and test the AI generation
     }
 

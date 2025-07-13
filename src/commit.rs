@@ -144,7 +144,7 @@ pub fn display_commit_options(messages: &[String]) {
 pub fn prompt_user_choice(count: usize) -> Result<Option<usize>> {
     print!(
         "{}",
-        format!("Choose an option (1-{}, or 'q' to quit): ", count).yellow()
+        format!("Choose an option (1-{count}, or 'q' to quit): ").yellow()
     );
     io::stdout().flush()?;
 
@@ -167,10 +167,7 @@ pub fn prompt_user_choice(count: usize) -> Result<Option<usize>> {
 
 /// Execute a git commit with the given message
 pub fn commit_with_message(message: &str) -> Result<()> {
-    println!(
-        "{}",
-        format!("Committing with message: {}", message).green()
-    );
+    println!("{}", format!("Committing with message: {message}").green());
 
     let output = Command::new("git")
         .args(["commit", "-m", message])
@@ -189,7 +186,7 @@ pub fn commit_with_message(message: &str) -> Result<()> {
                 let hash = String::from_utf8_lossy(&hash_output.stdout)
                     .trim()
                     .to_string();
-                println!("{}", format!("Commit hash: {}", hash).cyan());
+                println!("{}", format!("Commit hash: {hash}").cyan());
             }
         }
     } else {
@@ -279,10 +276,10 @@ pub fn enhance_commit_message(message: &str, branch: &str) -> String {
         if !enhanced.starts_with("feat") {
             enhanced = format!("feat: {}", enhanced.trim_start_matches("feat: "));
         }
-    } else if branch.starts_with("fix/") || branch.starts_with("bugfix/") {
-        if !enhanced.starts_with("fix") {
-            enhanced = format!("fix: {}", enhanced.trim_start_matches("fix: "));
-        }
+    } else if (branch.starts_with("fix/") || branch.starts_with("bugfix/"))
+        && !enhanced.starts_with("fix")
+    {
+        enhanced = format!("fix: {}", enhanced.trim_start_matches("fix: "));
     }
 
     enhanced

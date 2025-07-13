@@ -155,7 +155,7 @@ async fn handle_generate_command(committor: &Committor, cli: &Cli) -> Result<()>
 
     if cli.show_diff {
         println!("{}", "Current staged diff:".cyan().bold());
-        println!("{}", diff_content);
+        println!("{diff_content}");
         println!("{}", "─".repeat(80).cyan());
     }
 
@@ -183,7 +183,7 @@ async fn handle_commit_command(committor: &Committor, cli: &Cli) -> Result<()> {
 
     if cli.show_diff {
         println!("{}", "Current staged diff:".cyan().bold());
-        println!("{}", diff_content);
+        println!("{diff_content}");
         println!("{}", "─".repeat(80).cyan());
     }
 
@@ -214,7 +214,7 @@ fn handle_diff_command() -> Result<()> {
     if diff_content.is_empty() {
         println!("{}", "No staged changes found.".yellow());
     } else {
-        println!("{}", diff_content);
+        println!("{diff_content}");
     }
     Ok(())
 }
@@ -225,7 +225,7 @@ async fn handle_models_command(cli: &Cli) -> Result<()> {
             println!("{}", "Available OpenAI models:".green().bold());
             let models = vec!["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo", "gpt-3.5-turbo-16k"];
             for model in models {
-                println!("  {}", model);
+                println!("  {model}");
             }
         }
         AIProviderType::Ollama => {
@@ -246,7 +246,7 @@ async fn handle_models_command(cli: &Cli) -> Result<()> {
                 println!("  {}", "Example: ollama pull llama2".cyan());
             } else {
                 for model in models {
-                    println!("  {}", model);
+                    println!("  {model}");
                 }
             }
         }

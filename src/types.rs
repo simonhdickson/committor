@@ -32,7 +32,7 @@ impl fmt::Display for CommitType {
             CommitType::Ci => "ci",
             CommitType::Build => "build",
         };
-        write!(f, "{}", type_str)
+        write!(f, "{type_str}")
     }
 }
 
@@ -150,7 +150,7 @@ impl fmt::Display for DiffChangeType {
             DiffChangeType::Renamed => "renamed",
             DiffChangeType::Copied => "copied",
         };
-        write!(f, "{}", type_str)
+        write!(f, "{type_str}")
     }
 }
 

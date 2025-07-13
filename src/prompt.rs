@@ -47,11 +47,10 @@ Based on the following git diff, generate a single conventional commit message t
 
 ## Git Diff:
 ```
-{}
+{sanitized_diff}
 ```
 
-Generate ONE conventional commit message (only the message, no explanation):"#,
-        sanitized_diff
+Generate ONE conventional commit message (only the message, no explanation):"#
     )
 }
 
@@ -62,7 +61,7 @@ pub fn create_multiple_commit_prompt(diff: &str, count: u8) -> String {
     format!(
         r#"You are an expert software engineer who writes clear, concise conventional commit messages.
 
-Based on the following git diff, generate {} different conventional commit message options that follow these rules:
+Based on the following git diff, generate {count} different conventional commit message options that follow these rules:
 
 ## Format
 <type>(<scope>): <description>
@@ -89,11 +88,10 @@ Based on the following git diff, generate {} different conventional commit messa
 
 ## Git Diff:
 ```
-{}
+{sanitized_diff}
 ```
 
-Generate {} different conventional commit messages (one per line, no numbering or explanation):"#,
-        count, sanitized_diff, count
+Generate {count} different conventional commit messages (one per line, no numbering or explanation):"#
     )
 }
 
@@ -102,7 +100,7 @@ pub fn create_analysis_prompt(message: &str) -> String {
     format!(
         r#"You are an expert in conventional commit standards. Analyze this commit message:
 
-"{}"
+"{message}"
 
 Provide feedback on:
 1. Conventional commit format compliance
@@ -116,8 +114,7 @@ Rate from 1-10 and suggest improvements if needed.
 Response format:
 Score: X/10
 Issues: [list any issues]
-Suggestions: [list improvements]"#,
-        message
+Suggestions: [list improvements]"#
     )
 }
 
