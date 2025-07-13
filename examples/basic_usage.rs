@@ -34,7 +34,7 @@ async fn main() -> Result<()> {
 /// Example 1: Basic usage with default configuration
 async fn example_basic_usage() -> Result<()> {
     println!("📋 Example 1: Basic Usage");
-    println!("─".repeat(40));
+    println!("{}", "─".repeat(40));
 
     // Check if we have staged changes
     if !diff::has_staged_changes()? {
@@ -81,7 +81,7 @@ async fn example_basic_usage() -> Result<()> {
 /// Example 2: Custom configuration
 async fn example_custom_config() -> Result<()> {
     println!("⚙️  Example 2: Custom Configuration");
-    println!("─".repeat(40));
+    println!("{}", "─".repeat(40));
 
     // Check for API key
     if std::env::var("OPENAI_API_KEY").is_err() {
@@ -132,7 +132,7 @@ async fn example_custom_config() -> Result<()> {
 /// Example 3: Manual diff analysis
 async fn example_manual_diff_analysis() -> Result<()> {
     println!("🔍 Example 3: Manual Diff Analysis");
-    println!("─".repeat(40));
+    println!("{}", "─".repeat(40));
 
     // Create a sample diff for demonstration
     let sample_diff = r#"
@@ -192,7 +192,7 @@ index 1234567..abcdefg 100644
 /// Example 4: Commit message validation
 fn example_commit_validation() -> Result<()> {
     println!("✅ Example 4: Commit Message Validation");
-    println!("─".repeat(40));
+    println!("{}", "─".repeat(40));
 
     let test_messages = vec![
         "feat(auth): add JWT token validation",
@@ -232,7 +232,7 @@ fn example_commit_validation() -> Result<()> {
 /// Example 5: Repository context detection
 fn example_repository_context() -> Result<()> {
     println!("📋 Example 5: Repository Context");
-    println!("─".repeat(40));
+    println!("{}", "─".repeat(40));
 
     // Check git environment
     match commit::validate_git_environment() {

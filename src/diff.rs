@@ -220,16 +220,20 @@ mod tests {
             let mut index = repo.index()?;
             index.write_tree()?
         };
-        let tree = repo.find_tree(tree_id)?;
 
-        repo.commit(
-            Some("HEAD"),
-            &signature,
-            &signature,
-            "Initial commit",
-            &tree,
-            &[],
-        )?;
+        // Separate the tree creation from the commit to avoid borrow conflicts
+        let commit_result = {
+            let tree = repo.find_tree(tree_id)?;
+            repo.commit(
+                Some("HEAD"),
+                &signature,
+                &signature,
+                "Initial commit",
+                &tree,
+                &[],
+            )
+        };
+        commit_result?;
 
         Ok((temp_dir, repo))
     }
