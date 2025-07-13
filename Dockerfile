@@ -2,7 +2,7 @@
 # This creates an optimized container image for the Committor CLI tool
 
 # Build stage
-FROM rust:1.75-slim as builder
+FROM rust:1.88-slim as builder
 
 # Install system dependencies needed for building
 RUN apt-get update && apt-get install -y \
