@@ -1,14 +1,14 @@
-//! Basic usage examples for the Commitor library
+//! Basic usage examples for the Committor library
 //!
-//! This example demonstrates how to use the Commitor library with both OpenAI and Ollama providers.
+//! This example demonstrates how to use the Committor library with both OpenAI and Ollama providers.
 
 use anyhow::Result;
-use commitor::{diff, Commitor, Config};
+use committor::{diff, Committor, Config};
 use std::env;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    println!("🚀 Commitor Basic Usage Examples");
+    println!("🚀 Committor Basic Usage Examples");
     println!("=================================");
 
     // Example 1: Basic OpenAI usage
@@ -58,15 +58,15 @@ async fn basic_openai_example() -> Result<()> {
 
     // Create default configuration (uses OpenAI by default)
     let config = Config::new()?;
-    let commitor = Commitor::new(config)?;
+    let committor = Committor::new(config)?;
 
     // Get the diff
-    let diff = commitor.get_staged_diff()?;
+    let diff = committor.get_staged_diff()?;
     println!("📝 Staged diff found ({} characters)", diff.len());
 
     // Generate commit messages
     println!("🤖 Generating commit messages with OpenAI...");
-    match commitor.generate_commit_messages(&diff).await {
+    match committor.generate_commit_messages(&diff).await {
         Ok(messages) => {
             println!("✅ Generated {} commit messages:", messages.len());
             for (i, message) in messages.iter().enumerate() {
@@ -99,15 +99,15 @@ async fn basic_ollama_example() -> Result<()> {
         false, // Don't show diff
     );
 
-    match Commitor::new(config) {
-        Ok(commitor) => {
+    match Committor::new(config) {
+        Ok(committor) => {
             // Get the diff
-            let diff = commitor.get_staged_diff()?;
+            let diff = committor.get_staged_diff()?;
             println!("📝 Staged diff found ({} characters)", diff.len());
 
             // Generate commit messages
             println!("🦙 Generating commit messages with Ollama...");
-            match commitor.generate_commit_messages(&diff).await {
+            match committor.generate_commit_messages(&diff).await {
                 Ok(messages) => {
                     println!("✅ Generated {} commit messages:", messages.len());
                     for (i, message) in messages.iter().enumerate() {
@@ -154,10 +154,10 @@ async fn custom_openai_config_example() -> Result<()> {
         true,                        // Show diff
     );
 
-    let commitor = Commitor::new(config)?;
+    let committor = Committor::new(config)?;
 
     // Get the diff
-    let diff = commitor.get_staged_diff()?;
+    let diff = committor.get_staged_diff()?;
     println!("📝 Staged diff found ({} characters)", diff.len());
     println!("📄 Diff content preview:");
     println!("{}", diff.chars().take(200).collect::<String>());
@@ -167,7 +167,7 @@ async fn custom_openai_config_example() -> Result<()> {
 
     // Generate commit messages
     println!("🤖 Generating 5 commit messages with GPT-3.5-turbo...");
-    match commitor.generate_commit_messages(&diff).await {
+    match committor.generate_commit_messages(&diff).await {
         Ok(messages) => {
             println!("✅ Generated {} commit messages:", messages.len());
             for (i, message) in messages.iter().enumerate() {
@@ -200,10 +200,10 @@ async fn custom_ollama_config_example() -> Result<()> {
         true,                               // Show diff
     );
 
-    match Commitor::new(config) {
-        Ok(commitor) => {
+    match Committor::new(config) {
+        Ok(committor) => {
             // Get the diff
-            let diff = commitor.get_staged_diff()?;
+            let diff = committor.get_staged_diff()?;
             println!("📝 Staged diff found ({} characters)", diff.len());
             println!("📄 Diff content preview:");
             println!("{}", diff.chars().take(200).collect::<String>());
@@ -213,7 +213,7 @@ async fn custom_ollama_config_example() -> Result<()> {
 
             // Generate commit messages
             println!("🦙 Generating commit messages with CodeLlama (60s timeout)...");
-            match commitor.generate_commit_messages(&diff).await {
+            match committor.generate_commit_messages(&diff).await {
                 Ok(messages) => {
                     println!("✅ Generated {} commit messages:", messages.len());
                     for (i, message) in messages.iter().enumerate() {
@@ -249,8 +249,8 @@ async fn error_handling_example() -> Result<()> {
             false,
         );
 
-        match Commitor::new(config) {
-            Ok(commitor) => {
+        match Committor::new(config) {
+            Ok(committor) => {
                 // This will succeed but the API call will fail
                 let sample_diff = r#"
 diff --git a/README.md b/README.md
@@ -264,7 +264,7 @@ index 1234567..abcdefg 100644
 +Added a new line for testing.
 "#;
 
-                match commitor.generate_commit_messages(sample_diff).await {
+                match committor.generate_commit_messages(sample_diff).await {
                     Ok(_) => println!("🤔 This shouldn't happen with invalid key"),
                     Err(e) => println!("✅ Correctly caught invalid API key error: {}", e),
                 }
@@ -282,7 +282,7 @@ index 1234567..abcdefg 100644
         false,
     );
 
-    match Commitor::new(config) {
+    match Committor::new(config) {
         Ok(_) => println!("🤔 This shouldn't succeed with invalid URL"),
         Err(e) => println!("✅ Correctly caught Ollama connection error: {}", e),
     }

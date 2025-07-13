@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Commitor Installation Script
-# This script installs commitor and sets up the environment
+# Committor Installation Script
+# This script installs committor and sets up the environment
 
 set -e  # Exit on any error
 
@@ -64,42 +64,42 @@ check_requirements() {
     print_success "Git $GIT_VERSION found"
 }
 
-# Function to install commitor
-install_commitor() {
-    print_status "Installing commitor..."
+# Function to install committor
+install_committor() {
+    print_status "Installing committor..."
 
-    if [ -d "commitor" ]; then
-        print_status "Found existing commitor directory, updating..."
-        cd commitor
+    if [ -d "committor" ]; then
+        print_status "Found existing committor directory, updating..."
+        cd committor
         git pull origin main || print_warning "Could not update repository"
     else
-        print_status "Cloning commitor repository..."
-        git clone https://github.com/simonhdickson/commitor.git
-        cd commitor
+        print_status "Cloning committor repository..."
+        git clone https://github.com/simonhdickson/committor.git
+        cd committor
     fi
 
-    print_status "Building commitor..."
+    print_status "Building committor..."
     cargo build --release
 
     if [ $? -eq 0 ]; then
-        print_success "Commitor built successfully!"
+        print_success "Committor built successfully!"
     else
-        print_error "Failed to build commitor"
+        print_error "Failed to build committor"
         exit 1
     fi
 }
 
 # Function to install to system
 install_to_system() {
-    print_status "Installing commitor to system..."
+    print_status "Installing committor to system..."
 
     # Install using cargo
     cargo install --path . --force
 
     if [ $? -eq 0 ]; then
-        print_success "Commitor installed to cargo bin directory"
+        print_success "Committor installed to cargo bin directory"
     else
-        print_error "Failed to install commitor"
+        print_error "Failed to install committor"
         exit 1
     fi
 
@@ -121,7 +121,7 @@ setup_api_key() {
     fi
 
     echo
-    echo "To use commitor, you need an OpenAI API key."
+    echo "To use committor, you need an OpenAI API key."
     echo "You can get one from: https://platform.openai.com/api-keys"
     echo
     read -p "Do you want to set your API key now? (y/N): " -n 1 -r
@@ -158,19 +158,19 @@ setup_api_key() {
 verify_installation() {
     print_status "Verifying installation..."
 
-    if command_exists commitor; then
-        COMMITOR_VERSION=$(commitor --version 2>/dev/null || echo "unknown")
-        print_success "Commitor is installed and accessible: $COMMITOR_VERSION"
+    if command_exists committor; then
+        COMMITOR_VERSION=$(committor --version 2>/dev/null || echo "unknown")
+        print_success "Committor is installed and accessible: $COMMITOR_VERSION"
 
         # Test basic functionality
         print_status "Testing basic functionality..."
-        if commitor --help >/dev/null 2>&1; then
-            print_success "Commitor help command works"
+        if committor --help >/dev/null 2>&1; then
+            print_success "Committor help command works"
         else
-            print_warning "Commitor help command failed"
+            print_warning "Committor help command failed"
         fi
     else
-        print_error "Commitor is not accessible. Check your PATH."
+        print_error "Committor is not accessible. Check your PATH."
         exit 1
     fi
 }
@@ -180,29 +180,29 @@ show_usage() {
     print_success "Installation complete! Here are some usage examples:"
     echo
     echo "Basic usage:"
-    echo "  commitor generate                 # Generate commit messages for staged changes"
-    echo "  commitor commit                   # Generate and commit in one step"
-    echo "  commitor diff                     # Show current staged diff"
+    echo "  committor generate                 # Generate commit messages for staged changes"
+    echo "  committor commit                   # Generate and commit in one step"
+    echo "  committor diff                     # Show current staged diff"
     echo
     echo "Advanced usage:"
-    echo "  commitor generate --count 5       # Generate 5 options"
-    echo "  commitor commit --auto-commit     # Auto-commit with first suggestion"
-    echo "  commitor generate --show-diff     # Show diff before generating"
-    echo "  commitor generate --model gpt-3.5-turbo  # Use different model"
+    echo "  committor generate --count 5       # Generate 5 options"
+    echo "  committor commit --auto-commit     # Auto-commit with first suggestion"
+    echo "  committor generate --show-diff     # Show diff before generating"
+    echo "  committor generate --model gpt-3.5-turbo  # Use different model"
     echo
-    echo "For more information, run: commitor --help"
+    echo "For more information, run: committor --help"
     echo
     print_status "Make sure to set your OPENAI_API_KEY environment variable!"
 }
 
 # Main installation process
 main() {
-    echo "🚀 Commitor Installation Script"
+    echo "🚀 Committor Installation Script"
     echo "================================"
     echo
 
     check_requirements
-    install_commitor
+    install_committor
     install_to_system
     setup_api_key
     verify_installation

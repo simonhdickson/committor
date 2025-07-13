@@ -1,8 +1,8 @@
-# Commitor 🚀
+# Committor 🚀
 
 Automatically generate conventional commit messages based on your git diff using AI.
 
-Commitor is a Rust CLI tool that analyzes your staged git changes and generates conventional commit messages using AI models from OpenAI or Ollama. Say goodbye to writer's block when crafting commit messages!
+Committor is a Rust CLI tool that analyzes your staged git changes and generates conventional commit messages using AI models from OpenAI or Ollama. Say goodbye to writer's block when crafting commit messages!
 
 ✅ **COMPLETE**: Full implementation with AI-powered analysis and conventional commit generation!
 
@@ -42,8 +42,8 @@ This project successfully demonstrates a complete Rust application that:
 ### Install from source
 
 ```bash
-git clone https://github.com/simonhdickson/commitor.git
-cd commitor
+git clone https://github.com/simonhdickson/committor.git
+cd committor
 cargo install --path .
 ```
 
@@ -82,23 +82,23 @@ git add .
 
 2. Generate commit messages with OpenAI (default):
 ```bash
-commitor generate
+committor generate
 ```
 
 3. Or use Ollama for local processing:
 ```bash
-commitor --provider ollama --model llama2 generate
+committor --provider ollama --model llama2 generate
 ```
 
 4. Generate and commit in one step:
 ```bash
-commitor commit
+committor commit
 ```
 
 ### Command Line Options
 
 ```bash
-commitor [OPTIONS] [COMMAND]
+committor [OPTIONS] [COMMAND]
 
 Commands:
   generate      Generate a commit message for staged changes
@@ -124,47 +124,47 @@ Options:
 
 **Generate multiple commit message options with OpenAI:**
 ```bash
-commitor generate --count 5
+committor generate --count 5
 ```
 
 **Use Ollama with a local model:**
 ```bash
-commitor --provider ollama --model llama2 generate
+committor --provider ollama --model llama2 generate
 ```
 
 **Use a different OpenAI model:**
 ```bash
-commitor generate --model gpt-3.5-turbo
+committor generate --model gpt-3.5-turbo
 ```
 
 **Auto-commit with the first suggestion:**
 ```bash
-commitor commit --auto-commit
+committor commit --auto-commit
 ```
 
 **Show diff before generating:**
 ```bash
-commitor generate --show-diff
+committor generate --show-diff
 ```
 
 **List available models (shows your installed models):**
 ```bash
-commitor models --provider ollama
+committor models --provider ollama
 ```
 
 **Check Ollama availability:**
 ```bash
-commitor check-ollama
+committor check-ollama
 ```
 
 **Use custom Ollama URL:**
 ```bash
-commitor --provider ollama --ollama-url http://localhost:11434 --model codellama generate
+committor --provider ollama --ollama-url http://localhost:11434 --model codellama generate
 ```
 
 ## Conventional Commit Format
 
-Commitor generates messages following the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+Committor generates messages following the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
 ```
 <type>(<scope>): <description>
@@ -267,7 +267,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **"Ollama is not available"** (Ollama provider)
 - Make sure Ollama is installed and running: `ollama serve`
-- Check if Ollama is accessible: `commitor check-ollama`
+- Check if Ollama is accessible: `committor check-ollama`
 - Verify the URL is correct with `--ollama-url`
 
 **API rate limits** (OpenAI provider)
@@ -276,13 +276,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Model not found** (Ollama provider)
 - Pull the model first: `ollama pull <model-name>`
-- List your installed models: `commitor models --provider ollama`
+- List your installed models: `committor models --provider ollama`
 
 ### Debug Mode
 
 Run with debug logging:
 ```bash
-RUST_LOG=debug commitor generate
+RUST_LOG=debug committor generate
 ```
 
 ## ✅ Implementation Status

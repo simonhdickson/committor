@@ -1,10 +1,10 @@
 # Ollama Integration Guide 🦙
 
-This guide covers how to use Commitor with Ollama for completely local AI-powered commit message generation.
+This guide covers how to use Committor with Ollama for completely local AI-powered commit message generation.
 
 ## What is Ollama?
 
-[Ollama](https://ollama.ai) is a tool that lets you run large language models locally on your machine. Commitor integrates with Ollama using the [rig.rs](https://github.com/0xPlaygrounds/rig) library, providing a unified interface for both local and cloud AI processing. This means:
+[Ollama](https://ollama.ai) is a tool that lets you run large language models locally on your machine. Committor integrates with Ollama using the [rig.rs](https://github.com/0xPlaygrounds/rig) library, providing a unified interface for both local and cloud AI processing. This means:
 
 - 🔒 **Complete Privacy**: Your code never leaves your machine
 - ⚡ **No API Costs**: No charges for API usage
@@ -62,10 +62,10 @@ ollama pull tinyllama      # Very fast, smaller model
 
 ```bash
 # Check if Ollama is running
-commitor check-ollama
+committor check-ollama
 
 # List available models (shows actual installed models)
-commitor models --provider ollama
+committor models --provider ollama
 ```
 
 ## Usage Examples
@@ -79,49 +79,49 @@ Generate commit messages using Ollama:
 git add .
 
 # Generate with default model (you'll need to specify one)
-commitor --provider ollama --model llama2 generate
+committor --provider ollama --model llama2 generate
 
 # Generate multiple options
-commitor --provider ollama --model codellama --count 5 generate
+committor --provider ollama --model codellama --count 5 generate
 ```
 
 ### Model-Specific Examples
 
 **Code Llama (Recommended for commit messages):**
 ```bash
-commitor --provider ollama --model codellama generate
+committor --provider ollama --model codellama generate
 ```
 
 **DeepSeek Coder (Excellent for code analysis):**
 ```bash
-commitor --provider ollama --model deepseek-coder generate
+committor --provider ollama --model deepseek-coder generate
 ```
 
 **Mistral (Fast and efficient):**
 ```bash
-commitor --provider ollama --model mistral generate
+committor --provider ollama --model mistral generate
 ```
 
 ### Advanced Configuration
 
 **Custom Ollama URL:**
 ```bash
-commitor --provider ollama --ollama-url http://192.168.1.100:11434 --model llama2 generate
+committor --provider ollama --ollama-url http://192.168.1.100:11434 --model llama2 generate
 ```
 
 **Custom timeout:**
 ```bash
-commitor --provider ollama --ollama-timeout 60 --model codellama generate
+committor --provider ollama --ollama-timeout 60 --model codellama generate
 ```
 
 **Auto-commit:**
 ```bash
-commitor --provider ollama --model codellama commit --auto-commit
+committor --provider ollama --model codellama commit --auto-commit
 ```
 
 **Show diff before generating:**
 ```bash
-commitor --provider ollama --model codellama generate --show-diff
+committor --provider ollama --model codellama generate --show-diff
 ```
 
 ## Recommended Models by Use Case
@@ -131,19 +131,19 @@ commitor --provider ollama --model codellama generate --show-diff
 1. **CodeLlama** - Best overall for code understanding
    ```bash
    ollama pull codellama
-   commitor --provider ollama --model codellama generate
+   committor --provider ollama --model codellama generate
    ```
 
 2. **DeepSeek-Coder** - Specialized for coding tasks
    ```bash
    ollama pull deepseek-coder
-   commitor --provider ollama --model deepseek-coder generate
+   committor --provider ollama --model deepseek-coder generate
    ```
 
 3. **Mistral** - Good balance of speed and quality
    ```bash
    ollama pull mistral
-   commitor --provider ollama --model mistral generate
+   committor --provider ollama --model mistral generate
    ```
 
 ### For Different Project Types
@@ -192,12 +192,12 @@ commitor --provider ollama --model codellama generate --show-diff
 
 1. **Use smaller models for simple changes:**
    ```bash
-   commitor --provider ollama --model mistral generate
+   committor --provider ollama --model mistral generate
    ```
 
 2. **Increase timeout for complex diffs:**
    ```bash
-   commitor --provider ollama --ollama-timeout 60 --model codellama generate
+   committor --provider ollama --ollama-timeout 60 --model codellama generate
    ```
 
 3. **Keep Ollama running to avoid startup delays:**
@@ -231,16 +231,16 @@ ollama list
 ollama pull codellama
 
 # Verify it's available
-commitor models --provider ollama
+committor models --provider ollama
 ```
 
 **Slow performance**
 ```bash
 # Try a smaller model
-commitor --provider ollama --model mistral generate
+committor --provider ollama --model mistral generate
 
 # Or increase timeout
-commitor --provider ollama --ollama-timeout 90 --model codellama generate
+committor --provider ollama --ollama-timeout 90 --model codellama generate
 ```
 
 **Connection refused**
@@ -249,7 +249,7 @@ commitor --provider ollama --ollama-timeout 90 --model codellama generate
 netstat -tlnp | grep ollama
 
 # Use custom URL if needed
-commitor --provider ollama --ollama-url http://localhost:11435 --model llama2 generate
+committor --provider ollama --ollama-url http://localhost:11435 --model llama2 generate
 ```
 
 ### Debug Mode
@@ -257,7 +257,7 @@ commitor --provider ollama --ollama-url http://localhost:11435 --model llama2 ge
 Enable debug logging for troubleshooting:
 
 ```bash
-RUST_LOG=debug commitor --provider ollama --model codellama generate
+RUST_LOG=debug committor --provider ollama --model codellama generate
 ```
 
 ## Comparison: Ollama vs OpenAI
@@ -278,8 +278,8 @@ Create a shell alias for convenience:
 
 ```bash
 # Add to your ~/.bashrc or ~/.zshrc
-alias commit-local="commitor --provider ollama --model codellama"
-alias commit-fast="commitor --provider ollama --model mistral"
+alias commit-local="committor --provider ollama --model codellama"
+alias commit-fast="committor --provider ollama --model mistral"
 
 # Usage
 git add .
@@ -291,7 +291,7 @@ Or create a wrapper script:
 ```bash
 #!/bin/bash
 # Save as ~/bin/commit-ollama
-commitor --provider ollama --model codellama "$@"
+committor --provider ollama --model codellama "$@"
 ```
 
 ## Best Practices
@@ -310,7 +310,7 @@ commitor --provider ollama --model codellama "$@"
    ```bash
    # Check memory usage
    htop
-   
+
    # Check disk usage
    du -sh ~/.ollama/
    ```
@@ -322,10 +322,10 @@ commitor --provider ollama --model codellama "$@"
 5. **Combine with OpenAI when needed:**
    ```bash
    # Use Ollama for most commits
-   commitor --provider ollama --model codellama generate
-   
+   committor --provider ollama --model codellama generate
+
    # Fall back to OpenAI for complex cases
-   commitor --provider openai --model gpt-4 generate
+   committor --provider openai --model gpt-4 generate
    ```
 
 ## Security Considerations
@@ -343,7 +343,7 @@ commitor --provider ollama --model codellama "$@"
 ## Getting Help
 
 - **Ollama Documentation**: https://ollama.ai/docs
-- **Commitor Issues**: Report issues on the project repository
+- **Committor Issues**: Report issues on the project repository
 - **Model Issues**: Check Ollama's GitHub for model-specific problems
 
 ## Example Workflow
@@ -356,10 +356,10 @@ echo "Added user authentication" >> features.md
 git add features.md
 
 # 2. Generate commit messages
-commitor --provider ollama --model codellama --count 3 generate
+committor --provider ollama --model codellama --count 3 generate
 
 # 3. Review and select (or auto-commit)
-commitor --provider ollama --model codellama commit
+committor --provider ollama --model codellama commit
 
 # 4. Verify the commit
 git log -1 --oneline

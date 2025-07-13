@@ -1,4 +1,4 @@
-//! Common types and data structures used throughout the commitor application
+//! Common types and data structures used throughout the committor application
 
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -162,9 +162,9 @@ pub struct GenerationResult {
     pub generation_time: std::time::Duration,
 }
 
-/// Error types specific to commitor
+/// Error types specific to committor
 #[derive(Debug, thiserror::Error)]
-pub enum CommitorError {
+pub enum CommittorError {
     #[error("Git repository not found")]
     GitRepoNotFound,
 

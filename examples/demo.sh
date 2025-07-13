@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Demo script for Commitor with Ollama integration
+# Demo script for Committor with Ollama integration
 # This script demonstrates the new multi-provider capabilities
 
 set -e
 
-echo "🚀 Commitor Multi-Provider Demo"
+echo "🚀 Committor Multi-Provider Demo"
 echo "==============================="
 echo
 
@@ -91,7 +91,7 @@ else
 
     # Create a demo file with some changes
     echo "# Demo Project" > demo_file.md
-    echo "This is a demo file for testing Commitor." >> demo_file.md
+    echo "This is a demo file for testing Committor." >> demo_file.md
     echo "" >> demo_file.md
     echo "## Features" >> demo_file.md
     echo "- Multi-provider AI support" >> demo_file.md
@@ -112,12 +112,12 @@ print_step "6. Running AI provider demos..."
 if [ "$OPENAI_AVAILABLE" = true ]; then
     echo
     print_info "Demo: OpenAI with GPT-4"
-    echo "Command: commitor --provider openai --model gpt-4 --count 3 generate"
+    echo "Command: committor --provider openai --model gpt-4 --count 3 generate"
     cargo run --release -- --provider openai --model gpt-4 --count 3 generate
 
     echo
     print_info "Demo: OpenAI with GPT-3.5-turbo (faster)"
-    echo "Command: commitor --provider openai --model gpt-3.5-turbo --count 2 generate"
+    echo "Command: committor --provider openai --model gpt-3.5-turbo --count 2 generate"
     cargo run --release -- --provider openai --model gpt-3.5-turbo --count 2 generate
 fi
 
@@ -125,7 +125,7 @@ fi
 if [ "$OLLAMA_AVAILABLE" != false ]; then
     echo
     print_info "Demo: Ollama with default model"
-    echo "Command: commitor --provider ollama --model llama2 --count 3 generate"
+    echo "Command: committor --provider ollama --model llama2 --count 3 generate"
     if cargo run --release -- --provider ollama --model llama2 --count 3 generate 2>/dev/null; then
         print_success "Ollama demo completed!"
     else
@@ -136,7 +136,7 @@ if [ "$OLLAMA_AVAILABLE" != false ]; then
     # Try with codellama if available
     echo
     print_info "Demo: Ollama with CodeLlama (better for code)"
-    echo "Command: commitor --provider ollama --model codellama --count 2 generate"
+    echo "Command: committor --provider ollama --model codellama --count 2 generate"
     if cargo run --release -- --provider ollama --model codellama --count 2 generate 2>/dev/null; then
         print_success "CodeLlama demo completed!"
     else
@@ -165,12 +165,12 @@ print_step "8. Advanced features demo..."
 
 if [ "$OLLAMA_AVAILABLE" != false ]; then
     print_info "Demo: Custom Ollama URL and timeout"
-    echo "Command: commitor --provider ollama --ollama-url http://localhost:11434 --ollama-timeout 45 --model llama2 generate"
+    echo "Command: committor --provider ollama --ollama-url http://localhost:11434 --ollama-timeout 45 --model llama2 generate"
     cargo run --release -- --provider ollama --ollama-url http://localhost:11434 --ollama-timeout 45 --model llama2 generate 2>/dev/null || print_warning "Custom config demo failed"
 fi
 
 print_info "Demo: Show diff before generation"
-echo "Command: commitor --provider [any] --show-diff generate"
+echo "Command: committor --provider [any] --show-diff generate"
 if [ "$OPENAI_AVAILABLE" = true ]; then
     cargo run --release -- --provider openai --model gpt-3.5-turbo --show-diff --count 1 generate 2>/dev/null || true
 elif [ "$OLLAMA_AVAILABLE" != false ]; then
@@ -195,13 +195,13 @@ echo
 print_info "Next steps:"
 echo "  1. Set up your preferred AI provider (OpenAI or Ollama)"
 echo "  2. Stage some real changes: git add <files>"
-echo "  3. Generate commit messages: commitor generate"
-echo "  4. Or auto-commit: commitor commit --auto-commit"
+echo "  3. Generate commit messages: committor generate"
+echo "  4. Or auto-commit: committor commit --auto-commit"
 echo
 print_info "For more help:"
-echo "  commitor --help"
-echo "  commitor models --provider <openai|ollama>"
-echo "  commitor check-ollama (for Ollama troubleshooting)"
+echo "  committor --help"
+echo "  committor models --provider <openai|ollama>"
+echo "  committor check-ollama (for Ollama troubleshooting)"
 echo
 print_info "Documentation:"
 echo "  README.md - General usage"

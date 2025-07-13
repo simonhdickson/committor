@@ -1,6 +1,6 @@
-# Commitor Usage Guide
+# Committor Usage Guide
 
-This guide shows you how to use Commitor to automatically generate conventional commit messages.
+This guide shows you how to use Committor to automatically generate conventional commit messages.
 
 ## Quick Start
 
@@ -15,7 +15,7 @@ cargo build --release
 
 ### 2. Set up your OpenAI API Key
 
-You need an OpenAI API key to use Commitor. Get one from [OpenAI's platform](https://platform.openai.com/api-keys).
+You need an OpenAI API key to use Committor. Get one from [OpenAI's platform](https://platform.openai.com/api-keys).
 
 Set it as an environment variable:
 
@@ -39,10 +39,10 @@ In any git repository with staged changes:
 git add .
 
 # Generate commit message options
-./target/release/commitor generate
+./target/release/committor generate
 
 # Or generate and commit in one step
-./target/release/commitor commit
+./target/release/committor commit
 ```
 
 ## Commands
@@ -52,19 +52,19 @@ Generate commit message options for staged changes.
 
 ```bash
 # Basic usage
-commitor generate
+committor generate
 
 # Generate 5 options
-commitor generate --count 5
+committor generate --count 5
 
 # Show the diff before generating
-commitor generate --show-diff
+committor generate --show-diff
 
 # Use a different model
-commitor generate --model gpt-3.5-turbo
+committor generate --model gpt-3.5-turbo
 
 # Auto-commit with first suggestion
-commitor generate --auto-commit
+committor generate --auto-commit
 ```
 
 ### `commit`
@@ -72,17 +72,17 @@ Generate commit messages and optionally commit.
 
 ```bash
 # Generate options and choose one to commit
-commitor commit
+committor commit
 
 # Auto-commit with first suggestion
-commitor commit --auto-commit
+committor commit --auto-commit
 ```
 
 ### `diff`
 Show the current staged diff (doesn't require API key).
 
 ```bash
-commitor diff
+committor diff
 ```
 
 ## Examples
@@ -97,7 +97,7 @@ echo "pub fn new_feature() { println!(\"Hello!\"); }" >> src/lib.rs
 git add src/lib.rs
 
 # Generate commit messages
-commitor generate
+committor generate
 ```
 
 Output:
@@ -119,7 +119,7 @@ sed -i 's/bug/fixed_bug/g' src/main.rs
 git add src/main.rs
 
 # Generate and commit
-commitor commit --auto-commit
+committor commit --auto-commit
 ```
 
 ### Example 3: Documentation changes
@@ -132,7 +132,7 @@ echo "## New Section" >> README.md
 git add README.md
 
 # Generate commit messages
-commitor generate --show-diff
+committor generate --show-diff
 ```
 
 Output:
@@ -144,7 +144,7 @@ index abc123..def456 100644
 +++ b/README.md
 @@ -10,3 +10,5 @@ This is the README.
  ## Installation
- 
+
  Run `cargo install`.
 +
 +## New Section
@@ -169,7 +169,7 @@ Generated commit message options:
 
 ## Conventional Commit Types
 
-Commitor generates messages following the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+Committor generates messages following the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
 - `feat`: A new feature
 - `fix`: A bug fix
@@ -206,7 +206,7 @@ If you hit OpenAI's rate limits, wait a moment and try again.
 
 4. **Branch naming helps**: Use descriptive branch names like `feature/user-auth` or `fix/login-bug` for better context.
 
-5. **Combine with git hooks**: You can integrate Commitor into git hooks for automated commit message generation.
+5. **Combine with git hooks**: You can integrate Committor into git hooks for automated commit message generation.
 
 ## Integration with Git Hooks
 
@@ -217,14 +217,14 @@ You can set up a git hook to automatically suggest commit messages:
 cat > .git/hooks/commit-msg << 'EOF'
 #!/bin/bash
 if [ -z "$OPENAI_API_KEY" ]; then
-    echo "Tip: Set OPENAI_API_KEY to use Commitor for automatic commit messages"
+    echo "Tip: Set OPENAI_API_KEY to use Committor for automatic commit messages"
     exit 0
 fi
 
 # Generate suggestion
-SUGGESTION=$(commitor generate --count 1 2>/dev/null | tail -n 1)
+SUGGESTION=$(committor generate --count 1 2>/dev/null | tail -n 1)
 if [ $? -eq 0 ] && [ -n "$SUGGESTION" ]; then
-    echo "Commitor suggests: $SUGGESTION"
+    echo "Committor suggests: $SUGGESTION"
 fi
 EOF
 
@@ -246,13 +246,13 @@ You can experiment with different OpenAI models:
 
 ```bash
 # Use GPT-3.5 Turbo (faster, cheaper)
-commitor generate --model gpt-3.5-turbo
+committor generate --model gpt-3.5-turbo
 
 # Use GPT-4 (default, more accurate)
-commitor generate --model gpt-4
+committor generate --model gpt-4
 
 # Use GPT-4 Turbo
-commitor generate --model gpt-4-turbo-preview
+committor generate --model gpt-4-turbo-preview
 ```
 
 ### Batch Processing
@@ -263,7 +263,7 @@ For multiple small commits, you can use a simple script:
 for file in $(git diff --cached --name-only); do
     git reset HEAD
     git add "$file"
-    MESSAGE=$(commitor generate --count 1 --auto-commit 2>/dev/null)
+    MESSAGE=$(committor generate --count 1 --auto-commit 2>/dev/null)
     if [ $? -eq 0 ]; then
         echo "Committed $file with: $MESSAGE"
     else
@@ -273,4 +273,4 @@ for file in $(git diff --cached --name-only); do
 done
 ```
 
-This guide should help you get started with Commitor and make the most of its AI-powered commit message generation!
+This guide should help you get started with Committor and make the most of its AI-powered commit message generation!
