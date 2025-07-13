@@ -122,7 +122,7 @@ async fn create_commitor(cli: &Cli) -> Result<Commitor> {
         }
         AIProviderType::Ollama => {
             // Check if Ollama is available
-            if !providers::check_ollama_availability(&cli.ollama_url, &cli.model).await? {
+            if !providers::check_ollama_availability(&cli.ollama_url).await? {
                 return Err(anyhow::anyhow!(
                     "Ollama is not available at {}. Please make sure Ollama is running.",
                     cli.ollama_url
@@ -229,7 +229,7 @@ async fn handle_models_command(cli: &Cli) -> Result<()> {
             }
         }
         AIProviderType::Ollama => {
-            if !providers::check_ollama_availability(&cli.ollama_url, &cli.model).await? {
+            if !providers::check_ollama_availability(&cli.ollama_url).await? {
                 return Err(anyhow::anyhow!(
                     "Ollama is not available at {}. Please make sure Ollama is running.",
                     cli.ollama_url
@@ -260,7 +260,7 @@ async fn handle_check_ollama_command(cli: &Cli) -> Result<()> {
         format!("Checking Ollama availability at {}...", cli.ollama_url).cyan()
     );
 
-    match providers::check_ollama_availability(&cli.ollama_url, &cli.model).await {
+    match providers::check_ollama_availability(&cli.ollama_url).await {
         Ok(true) => {
             println!("{}", "✓ Ollama is available!".green().bold());
 

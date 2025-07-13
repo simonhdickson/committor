@@ -64,7 +64,7 @@ ollama pull tinyllama      # Very fast, smaller model
 # Check if Ollama is running
 commitor check-ollama
 
-# List available models
+# List available models (shows actual installed models)
 commitor models --provider ollama
 ```
 
