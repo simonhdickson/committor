@@ -1,0 +1,31 @@
+[package]
+name = "commitor"
+version = "0.1.0"
+edition = "2021"
+description = "Automatically generate conventional commit messages based on git diff using AI"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/commitor"
+keywords = ["git", "commit", "conventional", "ai", "cli"]
+categories = ["command-line-utilities", "development-tools"]
+
+[[bin]]
+name = "commitor"
+path = "src/main.rs"
+
+[dependencies]
+rig-core = "0.13"
+tokio = { version = "1.0", features = ["full"] }
+clap = { version = "4.4", features = ["derive", "env"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+git2 = "0.18"
+regex = "1.10"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+colored = "2.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+tempfile = "3.8"
