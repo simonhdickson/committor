@@ -1,13 +1,14 @@
 //! AI provider abstraction for different AI services
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use async_trait::async_trait;
+use reqwest::Client as HttpClient;
 use rig::{
     client::CompletionClient,
     completion::Prompt,
     providers::{ollama, openai},
 };
-
+use serde::Deserialize;
 use std::time::Duration;
 
 /// Trait for AI providers that can generate commit messages
@@ -138,37 +139,49 @@ pub fn create_provider(config: ProviderConfig) -> Result<Box<dyn AIProvider>> {
 }
 
 /// Check if Ollama is available at the given URL
-pub async fn check_ollama_availability(base_url: &str, model: &str) -> Result<bool> {
-    let client = if base_url == "http://localhost:11434" {
-        ollama::Client::new()
-    } else {
-        ollama::Client::from_url(base_url)
-    };
+pub async fn check_ollama_availability(base_url: &str) -> Result<bool> {
+    let client = HttpClient::builder()
+        .timeout(Duration::from_secs(5))
+        .build()?;
 
-    // Try a minimal test with a simple model to check availability
-    // We use a very short prompt to minimize resource usage
-    match client.agent(model).build().prompt("test").await {
-        Ok(_) => Ok(true),
-        Err(_) => Err(anyhow!(
-            "Ollama is not available or {model} model not installed"
-        )),
+    let url = format!("{}/api/tags", base_url.trim_end_matches('/'));
+
+    match client.get(&url).send().await {
+        Ok(response) => Ok(response.status().is_success()),
+        Err(_) => Ok(false),
     }
 }
 
-/// Get available models from Ollama
-pub async fn get_ollama_models(_base_url: &str) -> Result<Vec<String>> {
-    // Note: rig.rs Ollama client doesn't expose model listing directly
-    // This is a limitation of the current rig.rs implementation
-    // For now, return a list of common models
-    Ok(vec![
-        "llama2".to_string(),
-        "llama3.2".to_string(),
-        "codellama".to_string(),
-        "mistral".to_string(),
-        "deepseek-coder".to_string(),
-        "neural-chat".to_string(),
-        "tinyllama".to_string(),
-    ])
+/// Get available models from Ollama using /api/tags endpoint
+pub async fn get_ollama_models(base_url: &str) -> Result<Vec<String>> {
+    let client = HttpClient::builder()
+        .timeout(Duration::from_secs(10))
+        .build()?;
+
+    let url = format!("{}/api/tags", base_url.trim_end_matches('/'));
+    let response = client.get(&url).send().await?;
+
+    if !response.status().is_success() {
+        return Err(anyhow::anyhow!(
+            "Failed to get models from Ollama: {}",
+            response.status()
+        ));
+    }
+
+    #[derive(Deserialize)]
+    struct ModelInfo {
+        name: String,
+    }
+
+    #[derive(Deserialize)]
+    struct ModelsResponse {
+        models: Vec<ModelInfo>,
+    }
+
+    let models_response: ModelsResponse = response.json().await?;
+    let models = models_response.models.into_iter().map(|m| m.name).collect();
+
+    Ok(models)
 }
 
 #[cfg(test)]

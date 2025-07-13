@@ -147,7 +147,7 @@ commitor commit --auto-commit
 commitor generate --show-diff
 ```
 
-**List available models:**
+**List available models (shows your installed models):**
 ```bash
 commitor models --provider ollama
 ```
@@ -276,7 +276,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Model not found** (Ollama provider)
 - Pull the model first: `ollama pull <model-name>`
-- List available models: `commitor models --provider ollama`
+- List your installed models: `commitor models --provider ollama`
 
 ### Debug Mode
 
