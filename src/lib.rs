@@ -1,4 +1,4 @@
-//! Commitor - Automatically generate conventional commit messages based on git diff using AI
+//! Committor - Automatically generate conventional commit messages based on git diff using AI
 //!
 //! This library provides the core functionality for analyzing git diffs and generating
 //! conventional commit messages using AI models.
@@ -14,7 +14,7 @@ use providers::{create_provider, AIProvider, ProviderConfig};
 use std::env;
 use std::time::Duration;
 
-/// Main configuration for the commitor
+/// Main configuration for the committor
 pub struct Config {
     pub provider_config: ProviderConfig,
     pub count: u8,
@@ -86,14 +86,14 @@ impl Config {
     }
 }
 
-/// Main commitor service
-pub struct Commitor {
+/// Main committor service
+pub struct Committor {
     config: Config,
     provider: Box<dyn AIProvider>,
 }
 
-impl Commitor {
-    /// Create a new commitor instance
+impl Committor {
+    /// Create a new committor instance
     pub fn new(config: Config) -> Result<Self> {
         let provider = create_provider(config.provider_config.clone())?;
         Ok(Self { config, provider })

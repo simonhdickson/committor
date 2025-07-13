@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Test script for Ollama integration with Commitor
-# This script demonstrates how to use Commitor with Ollama
+# Test script for Ollama integration with Committor
+# This script demonstrates how to use Committor with Ollama
 
 set -e
 
-echo "🦙 Testing Commitor with Ollama"
+echo "🦙 Testing Committor with Ollama"
 echo "================================"
 
 # Check if Ollama is running
@@ -44,7 +44,7 @@ if [ ! -d "test_repo" ]; then
 
     # Create a test file
     echo "# Test Project" > README.md
-    echo "This is a test project for Commitor." >> README.md
+    echo "This is a test project for Committor." >> README.md
     git add README.md
     git commit -m "initial commit"
 

@@ -1,13 +1,13 @@
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
 use colored::*;
-use commitor::{commit, providers, Commitor, Config};
+use committor::{commit, providers, Committor, Config};
 use std::env;
 use std::time::Duration;
 use tracing::{info, warn};
 
 #[derive(Parser)]
-#[command(name = "commitor")]
+#[command(name = "committor")]
 #[command(about = "Generate conventional commit messages automatically based on git diff")]
 #[command(version = "0.1.0")]
 struct Cli {
@@ -80,12 +80,12 @@ async fn main() -> Result<()> {
 
     match cli.command.clone().unwrap_or(Commands::Generate) {
         Commands::Generate => {
-            let commitor = create_commitor(&cli).await?;
-            handle_generate_command(&commitor, &cli).await?;
+            let committor = create_committor(&cli).await?;
+            handle_generate_command(&committor, &cli).await?;
         }
         Commands::Commit => {
-            let commitor = create_commitor(&cli).await?;
-            handle_commit_command(&commitor, &cli).await?;
+            let committor = create_committor(&cli).await?;
+            handle_commit_command(&committor, &cli).await?;
         }
         Commands::Diff => {
             handle_diff_command()?;
@@ -101,7 +101,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn create_commitor(cli: &Cli) -> Result<Commitor> {
+async fn create_committor(cli: &Cli) -> Result<Committor> {
     let config = match cli.provider {
         AIProviderType::OpenAI => {
             let api_key = cli
@@ -140,11 +140,11 @@ async fn create_commitor(cli: &Cli) -> Result<Commitor> {
         }
     };
 
-    Commitor::new(config)
+    Committor::new(config)
 }
 
-async fn handle_generate_command(commitor: &Commitor, cli: &Cli) -> Result<()> {
-    let diff_content = commitor.get_staged_diff()?;
+async fn handle_generate_command(committor: &Committor, cli: &Cli) -> Result<()> {
+    let diff_content = committor.get_staged_diff()?;
     if diff_content.is_empty() {
         println!(
             "{}",
@@ -160,19 +160,19 @@ async fn handle_generate_command(commitor: &Commitor, cli: &Cli) -> Result<()> {
     }
 
     info!("Generating commit messages...");
-    let messages = commitor.generate_commit_messages(&diff_content).await?;
+    let messages = committor.generate_commit_messages(&diff_content).await?;
 
     commit::display_commit_options(&messages);
 
     if cli.auto_commit && !messages.is_empty() {
-        commitor.commit_with_message(&messages[0])?;
+        committor.commit_with_message(&messages[0])?;
     }
 
     Ok(())
 }
 
-async fn handle_commit_command(commitor: &Commitor, cli: &Cli) -> Result<()> {
-    let diff_content = commitor.get_staged_diff()?;
+async fn handle_commit_command(committor: &Committor, cli: &Cli) -> Result<()> {
+    let diff_content = committor.get_staged_diff()?;
     if diff_content.is_empty() {
         println!(
             "{}",
@@ -188,15 +188,15 @@ async fn handle_commit_command(commitor: &Commitor, cli: &Cli) -> Result<()> {
     }
 
     info!("Generating commit messages...");
-    let messages = commitor.generate_commit_messages(&diff_content).await?;
+    let messages = committor.generate_commit_messages(&diff_content).await?;
 
     if cli.auto_commit && !messages.is_empty() {
-        commitor.commit_with_message(&messages[0])?;
+        committor.commit_with_message(&messages[0])?;
     } else if !messages.is_empty() {
         commit::display_commit_options(&messages);
         let choice = commit::prompt_user_choice(messages.len())?;
         if let Some(index) = choice {
-            commitor.commit_with_message(&messages[index])?;
+            committor.commit_with_message(&messages[index])?;
         } else {
             println!("{}", "Commit cancelled.".yellow());
         }
@@ -208,7 +208,7 @@ async fn handle_commit_command(commitor: &Commitor, cli: &Cli) -> Result<()> {
 }
 
 fn handle_diff_command() -> Result<()> {
-    use commitor::diff;
+    use committor::diff;
 
     let diff_content = diff::get_staged_diff()?;
     if diff_content.is_empty() {

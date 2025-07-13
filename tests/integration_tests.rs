@@ -1,6 +1,6 @@
-//! Integration tests for the commitor CLI application
+//! Integration tests for the committor CLI application
 //!
-//! These tests verify the end-to-end functionality of commitor,
+//! These tests verify the end-to-end functionality of committor,
 //! including CLI commands, git operations, and AI integration.
 
 use git2::Repository;
@@ -166,7 +166,7 @@ fn test_cli_version_command() {
 
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("commitor"));
+    assert!(stdout.contains("committor"));
     assert!(stdout.contains("0.1.0"));
 }
 

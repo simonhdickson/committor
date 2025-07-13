@@ -2,7 +2,7 @@
 
 use crate::prompt::create_commit_prompt;
 use crate::providers::AIProvider;
-use crate::types::{CommitorError, ConventionalCommit};
+use crate::types::{CommittorError, ConventionalCommit};
 use anyhow::{Context, Result};
 use colored::*;
 use std::io::{self, Write};
@@ -48,7 +48,7 @@ pub async fn generate_commit_messages(
                 );
                 if attempts == 1 {
                     // If first attempt fails, return the error
-                    return Err(CommitorError::AIProviderError(e.to_string()).into());
+                    return Err(CommittorError::AIProviderError(e.to_string()).into());
                 }
                 // For subsequent attempts, just continue trying
             }
@@ -63,7 +63,7 @@ pub async fn generate_commit_messages(
     );
 
     if messages.is_empty() {
-        return Err(CommitorError::AIProviderError(
+        return Err(CommittorError::AIProviderError(
             "Failed to generate any valid commit messages".to_string(),
         )
         .into());
@@ -103,7 +103,7 @@ pub fn parse_commit_message(message: &str) -> Result<ConventionalCommit> {
             "build" => crate::types::CommitType::Build,
             _ => {
                 return Err(
-                    CommitorError::InvalidCommitFormat("Unknown commit type".to_string()).into(),
+                    CommittorError::InvalidCommitFormat("Unknown commit type".to_string()).into(),
                 )
             }
         };
@@ -123,7 +123,7 @@ pub fn parse_commit_message(message: &str) -> Result<ConventionalCommit> {
         Ok(commit)
     } else {
         Err(
-            CommitorError::InvalidCommitFormat("Invalid conventional commit format".to_string())
+            CommittorError::InvalidCommitFormat("Invalid conventional commit format".to_string())
                 .into(),
         )
     }
@@ -194,7 +194,7 @@ pub fn commit_with_message(message: &str) -> Result<()> {
         }
     } else {
         let error = String::from_utf8_lossy(&output.stderr);
-        return Err(CommitorError::GitError(error.to_string()).into());
+        return Err(CommittorError::GitError(error.to_string()).into());
     }
 
     Ok(())
@@ -219,7 +219,7 @@ pub fn validate_git_environment() -> Result<()> {
         .context("Not in a git repository")?;
 
     if !git_status.status.success() {
-        return Err(CommitorError::GitRepoNotFound.into());
+        return Err(CommittorError::GitRepoNotFound.into());
     }
 
     Ok(())

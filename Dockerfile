@@ -1,5 +1,5 @@
-# Multi-stage Dockerfile for Commitor
-# This creates an optimized container image for the Commitor CLI tool
+# Multi-stage Dockerfile for Committor
+# This creates an optimized container image for the Committor CLI tool
 
 # Build stage
 FROM rust:1.75-slim as builder
@@ -42,36 +42,36 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user
-RUN useradd -m -u 1000 commitor
+RUN useradd -m -u 1000 committor
 
 # Copy the binary from builder stage
-COPY --from=builder /app/target/release/commitor /usr/local/bin/commitor
+COPY --from=builder /app/target/release/committor /usr/local/bin/committor
 
 # Make binary executable
-RUN chmod +x /usr/local/bin/commitor
+RUN chmod +x /usr/local/bin/committor
 
 # Switch to non-root user
-USER commitor
+USER committor
 
 # Set working directory to user home
-WORKDIR /home/commitor
+WORKDIR /home/committor
 
 # Set up git config (can be overridden at runtime)
-RUN git config --global user.name "Commitor Bot" && \
-    git config --global user.email "commitor@example.com"
+RUN git config --global user.name "Committor Bot" && \
+    git config --global user.email "committor@example.com"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD commitor --help || exit 1
+    CMD committor --help || exit 1
 
 # Default command
-ENTRYPOINT ["commitor"]
+ENTRYPOINT ["committor"]
 CMD ["--help"]
 
 # Metadata
-LABEL maintainer="Commitor Team"
+LABEL maintainer="Committor Team"
 LABEL description="AI-powered conventional commit message generator"
 LABEL version="0.1.0"
-LABEL org.opencontainers.image.source="https://github.com/yourusername/commitor"
-LABEL org.opencontainers.image.documentation="https://github.com/yourusername/commitor/blob/main/README.md"
+LABEL org.opencontainers.image.source="https://github.com/yourusername/committor"
+LABEL org.opencontainers.image.documentation="https://github.com/yourusername/committor/blob/main/README.md"
 LABEL org.opencontainers.image.licenses="MIT"

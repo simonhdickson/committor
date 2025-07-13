@@ -1,8 +1,8 @@
-# Commitor Project Summary
+# Committor Project Summary
 
 ## 🎯 Project Overview
 
-**Commitor** is a complete Rust CLI application that automatically generates conventional commit messages based on git diffs using AI models from multiple providers including OpenAI GPT and Ollama local models. This project demonstrates the integration of AI capabilities with developer tooling to solve a real-world problem.
+**Committor** is a complete Rust CLI application that automatically generates conventional commit messages based on git diffs using AI models from multiple providers including OpenAI GPT and Ollama local models. This project demonstrates the integration of AI capabilities with developer tooling to solve a real-world problem.
 
 ## ✅ Completed Implementation
 
@@ -62,7 +62,7 @@ committor/
 - Error handling and user feedback
 
 #### 2. Core Library (`lib.rs`)
-- Main `Commitor` struct providing high-level API
+- Main `Committor` struct providing high-level API
 - Configuration management with `Config` struct
 - Provider-agnostic interface supporting multiple AI backends
 
@@ -277,6 +277,6 @@ While the core project is complete, potential enhancements could include:
 
 ## 🏆 Conclusion
 
-**Commitor** successfully demonstrates the integration of multiple AI providers with developer tooling using Rust. The project showcases modern software engineering practices, comprehensive testing, and real-world utility. It serves as an excellent example of how AI can enhance developer productivity while providing flexibility between cloud-based and local AI processing options.
+**Committor** successfully demonstrates the integration of multiple AI providers with developer tooling using Rust. The project showcases modern software engineering practices, comprehensive testing, and real-world utility. It serves as an excellent example of how AI can enhance developer productivity while providing flexibility between cloud-based and local AI processing options.
 
 The implementation is **complete, tested, and ready for use** by developers who want to improve their git commit workflow with AI-powered message generation, whether they prefer OpenAI's powerful cloud models or Ollama's privacy-focused local processing.

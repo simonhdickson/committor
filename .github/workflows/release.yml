@@ -108,27 +108,27 @@ jobs:
         config:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact: commitor-linux-x86_64
+            artifact: committor-linux-x86_64
             cross: false
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
-            artifact: commitor-linux-x86_64-musl
+            artifact: committor-linux-x86_64-musl
             cross: false
           - os: ubuntu-latest
             target: aarch64-unknown-linux-gnu
-            artifact: commitor-linux-aarch64
+            artifact: committor-linux-aarch64
             cross: true
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact: commitor-windows-x86_64.exe
+            artifact: committor-windows-x86_64.exe
             cross: false
           - os: macos-latest
             target: x86_64-apple-darwin
-            artifact: commitor-macos-x86_64
+            artifact: committor-macos-x86_64
             cross: false
           - os: macos-latest
             target: aarch64-apple-darwin
-            artifact: commitor-macos-aarch64
+            artifact: committor-macos-aarch64
             cross: false
 
     steps:
@@ -176,10 +176,10 @@ jobs:
         run: |
           mkdir -p dist
           if [ "${{ matrix.config.os }}" = "windows-latest" ]; then
-            BINARY_PATH="target/${{ matrix.config.target }}/release/commitor.exe"
+            BINARY_PATH="target/${{ matrix.config.target }}/release/committor.exe"
             cp "$BINARY_PATH" "dist/${{ matrix.config.artifact }}"
           else
-            BINARY_PATH="target/${{ matrix.config.target }}/release/commitor"
+            BINARY_PATH="target/${{ matrix.config.target }}/release/committor"
             cp "$BINARY_PATH" "dist/${{ matrix.config.artifact }}"
             strip "dist/${{ matrix.config.artifact }}"
           fi
@@ -230,7 +230,7 @@ jobs:
           else
             echo "## Initial Release" >> changelog.md
             echo "" >> changelog.md
-            echo "This is the first release of Commitor!" >> changelog.md
+            echo "This is the first release of Committor!" >> changelog.md
           fi
 
           # Set multiline output
@@ -280,9 +280,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ needs.validate-release.outputs.version }}
-          release_name: Commitor ${{ needs.validate-release.outputs.version }}
+          release_name: Committor ${{ needs.validate-release.outputs.version }}
           body: |
-            # Commitor ${{ needs.validate-release.outputs.version }}
+            # Committor ${{ needs.validate-release.outputs.version }}
 
             AI-powered conventional commit message generator with support for OpenAI and Ollama.
 
@@ -293,12 +293,12 @@ jobs:
 
             ### Using Cargo
             ```bash
-            cargo install --git https://github.com/simonhdickson/commitor.git
+            cargo install --git https://github.com/simonhdickson/committor.git
             ```
 
             ### Using Docker
             ```bash
-            docker pull simonhdickson/commitor:${{ needs.validate-release.outputs.version }}
+            docker pull simonhdickson/committor:${{ needs.validate-release.outputs.version }}
             ```
 
             ## What's New
@@ -324,7 +324,7 @@ jobs:
             - 🤖 **OpenAI**: GPT-4, GPT-3.5-turbo and other models
             - 🦙 **Ollama**: Local AI processing with llama2, codellama, mistral, and more
 
-            For detailed usage instructions, see the [README](https://github.com/simonhdickson/commitor/blob/main/README.md).
+            For detailed usage instructions, see the [README](https://github.com/simonhdickson/committor/blob/main/README.md).
           draft: false
           prerelease: ${{ needs.validate-release.outputs.is-prerelease == 'true' }}
 
@@ -362,10 +362,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            simonhdickson/commitor:${{ needs.validate-release.outputs.version }}
-            simonhdickson/commitor:latest
+            simonhdickson/committor:${{ needs.validate-release.outputs.version }}
+            simonhdickson/committor:latest
           labels: |
-            org.opencontainers.image.title=Commitor
+            org.opencontainers.image.title=Committor
             org.opencontainers.image.description=AI-powered conventional commit message generator
             org.opencontainers.image.version=${{ needs.validate-release.outputs.version }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
