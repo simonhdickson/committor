@@ -1,0 +1,426 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g., v1.0.0)"
+        required: true
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  validate-release:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-prerelease: ${{ steps.version.outputs.is-prerelease }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Check if this is a prerelease (contains alpha, beta, rc)
+          if [[ $VERSION =~ (alpha|beta|rc) ]]; then
+            echo "is-prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate version format
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            echo "Expected format: vX.Y.Z or vX.Y.Z-prerelease"
+            exit 1
+          fi
+
+      - name: Check if version matches Cargo.toml
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          CARGO_VERSION=$(grep '^version = ' Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+          if [ "v$CARGO_VERSION" != "$VERSION" ]; then
+            echo "Version mismatch: Cargo.toml has v$CARGO_VERSION but releasing $VERSION"
+            echo "Please update Cargo.toml version to match the release tag"
+            exit 1
+          fi
+
+  test-before-release:
+    name: Pre-Release Tests
+    runs-on: ${{ matrix.os }}
+    needs: validate-release
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install system dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config
+
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run tests
+        run: cargo test --all-features
+
+  build-release-binaries:
+    name: Build Release Binaries
+    needs: [validate-release, test-before-release]
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact: commitor-linux-x86_64
+            cross: false
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            artifact: commitor-linux-x86_64-musl
+            cross: false
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            artifact: commitor-linux-aarch64
+            cross: true
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: commitor-windows-x86_64.exe
+            cross: false
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: commitor-macos-x86_64
+            cross: false
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: commitor-macos-aarch64
+            cross: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.config.target }}
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-${{ matrix.config.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install system dependencies (Ubuntu)
+        if: matrix.config.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config
+          if [ "${{ matrix.config.target }}" = "x86_64-unknown-linux-musl" ]; then
+            sudo apt-get install -y musl-tools
+          fi
+
+      - name: Install cross-compilation tools
+        if: matrix.config.cross
+        run: |
+          cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build binary
+        run: |
+          if [ "${{ matrix.config.cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.config.target }}
+          else
+            cargo build --release --target ${{ matrix.config.target }}
+          fi
+
+      - name: Package binary
+        shell: bash
+        run: |
+          mkdir -p dist
+          if [ "${{ matrix.config.os }}" = "windows-latest" ]; then
+            BINARY_PATH="target/${{ matrix.config.target }}/release/commitor.exe"
+            cp "$BINARY_PATH" "dist/${{ matrix.config.artifact }}"
+          else
+            BINARY_PATH="target/${{ matrix.config.target }}/release/commitor"
+            cp "$BINARY_PATH" "dist/${{ matrix.config.artifact }}"
+            strip "dist/${{ matrix.config.artifact }}"
+          fi
+
+      - name: Create release archive
+        shell: bash
+        run: |
+          cd dist
+          if [ "${{ matrix.config.os }}" = "windows-latest" ]; then
+            7z a "${{ matrix.config.artifact }}.zip" "${{ matrix.config.artifact }}"
+          else
+            tar -czf "${{ matrix.config.artifact }}.tar.gz" "${{ matrix.config.artifact }}"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.config.artifact }}
+          path: dist/${{ matrix.config.artifact }}.*
+
+  generate-changelog:
+    name: Generate Changelog
+    needs: validate-release
+    runs-on: ubuntu-latest
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION=${{ needs.validate-release.outputs.version }}
+
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          # Generate changelog
+          if [ -n "$PREV_TAG" ]; then
+            echo "## Changes since $PREV_TAG" >> changelog.md
+            echo "" >> changelog.md
+
+            # Get commits since last tag
+            git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD >> changelog.md
+          else
+            echo "## Initial Release" >> changelog.md
+            echo "" >> changelog.md
+            echo "This is the first release of Commitor!" >> changelog.md
+          fi
+
+          # Set multiline output
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          cat changelog.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog.md
+
+  create-release:
+    name: Create GitHub Release
+    needs: [validate-release, build-release-binaries, generate-changelog]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release-assets
+          find artifacts -name "*.tar.gz" -o -name "*.zip" | while read file; do
+            cp "$file" release-assets/
+          done
+
+          # List all files for verification
+          ls -la release-assets/
+
+      - name: Calculate checksums
+        run: |
+          cd release-assets
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ needs.validate-release.outputs.version }}
+          release_name: Commitor ${{ needs.validate-release.outputs.version }}
+          body: |
+            # Commitor ${{ needs.validate-release.outputs.version }}
+
+            AI-powered conventional commit message generator with support for OpenAI and Ollama.
+
+            ## Installation
+
+            ### Download Binary
+            Download the appropriate binary for your platform from the assets below.
+
+            ### Using Cargo
+            ```bash
+            cargo install --git https://github.com/simonhdickson/commitor.git
+            ```
+
+            ### Using Docker
+            ```bash
+            docker pull simonhdickson/commitor:${{ needs.validate-release.outputs.version }}
+            ```
+
+            ## What's New
+
+            ${{ needs.generate-changelog.outputs.changelog }}
+
+            ## Verification
+
+            All binaries are signed and checksums are provided. You can verify the integrity of your download:
+
+            ```bash
+            sha256sum -c checksums.txt
+            ```
+
+            ## Platform Support
+
+            - ✅ Linux (x86_64, aarch64)
+            - ✅ Windows (x86_64)
+            - ✅ macOS (x86_64, Apple Silicon)
+
+            ## Provider Support
+
+            - 🤖 **OpenAI**: GPT-4, GPT-3.5-turbo and other models
+            - 🦙 **Ollama**: Local AI processing with llama2, codellama, mistral, and more
+
+            For detailed usage instructions, see the [README](https://github.com/simonhdickson/commitor/blob/main/README.md).
+          draft: false
+          prerelease: ${{ needs.validate-release.outputs.is-prerelease == 'true' }}
+
+      - name: Upload Release Assets
+        run: |
+          cd release-assets
+          for file in *; do
+            echo "Uploading $file..."
+            gh release upload ${{ needs.validate-release.outputs.version }} "$file"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-docker:
+    name: Publish Docker Image
+    needs: [validate-release, test-before-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            simonhdickson/commitor:${{ needs.validate-release.outputs.version }}
+            simonhdickson/commitor:latest
+          labels: |
+            org.opencontainers.image.title=Commitor
+            org.opencontainers.image.description=AI-powered conventional commit message generator
+            org.opencontainers.image.version=${{ needs.validate-release.outputs.version }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  publish-crates-io:
+    name: Publish to crates.io
+    needs: [validate-release, test-before-release]
+    runs-on: ubuntu-latest
+    if: ${{ needs.validate-release.outputs.is-prerelease == 'false' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl-dev pkg-config
+
+      - name: Publish to crates.io
+        run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+
+  notify-release:
+    name: Post-Release Notifications
+    needs: [create-release, publish-docker, validate-release]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify success
+        if: needs.create-release.result == 'success' && needs.publish-docker.result == 'success'
+        run: |
+          echo "🎉 Release ${{ needs.validate-release.outputs.version }} completed successfully!"
+          echo "✅ GitHub release created"
+          echo "✅ Docker image published"
+          echo "📦 Release artifacts uploaded"
+
+      - name: Notify failure
+        if: needs.create-release.result == 'failure' || needs.publish-docker.result == 'failure'
+        run: |
+          echo "❌ Release ${{ needs.validate-release.outputs.version }} failed!"
+          echo "Create release result: ${{ needs.create-release.result }}"
+          echo "Docker publish result: ${{ needs.publish-docker.result }}"
+          exit 1
