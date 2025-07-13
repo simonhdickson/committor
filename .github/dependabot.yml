@@ -14,9 +14,9 @@ updates:
       timezone: "Europe/London"
     open-pull-requests-limit: 10
     reviewers:
-      - "yourusername" # Replace with actual GitHub username
+      - "simonhdickson"
     assignees:
-      - "yourusername" # Replace with actual GitHub username
+      - "simonhdickson"
     commit-message:
       prefix: "deps"
       prefix-development: "deps-dev"
@@ -61,9 +61,9 @@ updates:
       timezone: "Europe/London"
     open-pull-requests-limit: 5
     reviewers:
-      - "yourusername" # Replace with actual GitHub username
+      - "simonhdickson"
     assignees:
-      - "yourusername" # Replace with actual GitHub username
+      - "simonhdickson"
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -88,9 +88,9 @@ updates:
       timezone: "Europe/London"
     open-pull-requests-limit: 3
     reviewers:
-      - "yourusername" # Replace with actual GitHub username
+      - "simonhdickson"
     assignees:
-      - "yourusername" # Replace with actual GitHub username
+      - "simonhdickson"
     commit-message:
       prefix: "docker"
       include: "scope"
