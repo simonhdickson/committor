@@ -33,16 +33,60 @@ impl TestRepo {
             let mut index = repo.index()?;
             index.write_tree()?
         };
-        let tree = repo.find_tree(tree_id)?;
 
-        repo.commit(
-            Some("HEAD"),
-            &signature,
-            &signature,
-            "Initial commit",
-            &tree,
-            &[],
-        )?;
+        // Separate the tree creation from the commit to avoid borrow conflicts
+        let commit_result = {
+            let tree = repo.find_tree(tree_id)?;
+            repo.commit(
+                Some("HEAD"),
+                &signature,
+                &signature,
+                "Initial commit",
+                &tree,
+                &[],
+            )
+        };
+        commit_result?;
+
+        let path = temp_dir.path().to_path_buf();
+
+        Ok(TestRepo {
+            _temp_dir: temp_dir,
+            repo,
+            path,
+        })
+    }
+
+    /// Create a new test repository with proper lifetime management
+    fn new_with_commit() -> Result<Self, Box<dyn std::error::Error>> {
+        let temp_dir = TempDir::new()?;
+        let repo = Repository::init(temp_dir.path())?;
+
+        // Configure git user for testing
+        let mut config = repo.config()?;
+        config.set_str("user.name", "Test User")?;
+        config.set_str("user.email", "test@example.com")?;
+
+        // Create initial commit
+        let signature = git2::Signature::now("Test User", "test@example.com")?;
+        let tree_id = {
+            let mut index = repo.index()?;
+            index.write_tree()?
+        };
+
+        // Separate tree lookup and commit to avoid borrow conflicts
+        let commit_result = {
+            let tree = repo.find_tree(tree_id)?;
+            repo.commit(
+                Some("HEAD"),
+                &signature,
+                &signature,
+                "Initial commit",
+                &tree,
+                &[],
+            )
+        };
+        commit_result?;
 
         let path = temp_dir.path().to_path_buf();
 
@@ -85,7 +129,7 @@ impl TestRepo {
     /// Check if there are staged changes
     fn has_staged_changes(&self) -> Result<bool, git2::Error> {
         let head_tree = self.repo.head()?.peel_to_tree()?;
-        let index = self.repo.index()?;
+        let mut index = self.repo.index()?;
         let index_tree = self.repo.find_tree(index.write_tree()?)?;
 
         let diff = self
@@ -270,7 +314,7 @@ fn test_cli_argument_parsing() {
 
 #[test]
 fn test_different_file_types() {
-    let test_repo = TestRepo::new().expect("Failed to create test repo");
+    let _test_repo = TestRepo::new().expect("Failed to create test repo");
 
     // Test different file types that should trigger different commit types
     let test_files = vec![
@@ -378,7 +422,7 @@ fn test_error_handling_for_invalid_options() {
     assert!(!stderr.is_empty() || output.status.success());
 
     // Test invalid model name (this might not fail immediately but should be handled)
-    let output = Command::new("cargo")
+    let _output = Command::new("cargo")
         .args(["run", "--", "generate", "--model", "invalid-model-name"])
         .current_dir(test_repo.path())
         .output()

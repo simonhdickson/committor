@@ -275,11 +275,11 @@ pub fn enhance_commit_message(message: &str, branch: &str) -> String {
 
     // Add branch context for feature branches
     if branch.starts_with("feature/") || branch.starts_with("feat/") {
-        if !enhanced.contains("feat") {
+        if !enhanced.starts_with("feat") {
             enhanced = format!("feat: {}", enhanced.trim_start_matches("feat: "));
         }
     } else if branch.starts_with("fix/") || branch.starts_with("bugfix/") {
-        if !enhanced.contains("fix") {
+        if !enhanced.starts_with("fix") {
             enhanced = format!("fix: {}", enhanced.trim_start_matches("fix: "));
         }
     }
@@ -311,7 +311,7 @@ mod tests {
         assert!(!is_valid_commit_message("feat"));
         assert!(!is_valid_commit_message("feat:"));
         assert!(!is_valid_commit_message("feature: add something")); // wrong type
-        assert!(!is_valid_commit_message("feat: ".repeat(100))); // too long
+        assert!(!is_valid_commit_message(&"feat: ".repeat(100))); // too long
     }
 
     #[test]

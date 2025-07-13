@@ -53,7 +53,24 @@ async fn main() -> Result<()> {
     // Validate git environment first
     commit::validate_git_environment().context("Git environment validation failed")?;
 
-    // Check for API key
+    match cli.command.clone().unwrap_or(Commands::Generate) {
+        Commands::Generate => {
+            let commitor = create_commitor(&cli)?;
+            handle_generate_command(&commitor, &cli).await?;
+        }
+        Commands::Commit => {
+            let commitor = create_commitor(&cli)?;
+            handle_commit_command(&commitor, &cli).await?;
+        }
+        Commands::Diff => {
+            handle_diff_command()?;
+        }
+    }
+
+    Ok(())
+}
+
+fn create_commitor(cli: &Cli) -> Result<Commitor> {
     let api_key = cli
         .api_key
         .clone()
@@ -71,22 +88,7 @@ async fn main() -> Result<()> {
         cli.show_diff,
     );
 
-    // Create commitor instance
-    let commitor = Commitor::new(config);
-
-    match cli.command.clone().unwrap_or(Commands::Generate) {
-        Commands::Generate => {
-            handle_generate_command(&commitor, &cli).await?;
-        }
-        Commands::Commit => {
-            handle_commit_command(&commitor, &cli).await?;
-        }
-        Commands::Diff => {
-            handle_diff_command(&commitor)?;
-        }
-    }
-
-    Ok(())
+    Ok(Commitor::new(config))
 }
 
 async fn handle_generate_command(commitor: &Commitor, cli: &Cli) -> Result<()> {
@@ -153,8 +155,10 @@ async fn handle_commit_command(commitor: &Commitor, cli: &Cli) -> Result<()> {
     Ok(())
 }
 
-fn handle_diff_command(commitor: &Commitor) -> Result<()> {
-    let diff_content = commitor.get_staged_diff()?;
+fn handle_diff_command() -> Result<()> {
+    use commitor::diff;
+
+    let diff_content = diff::get_staged_diff()?;
     if diff_content.is_empty() {
         println!("{}", "No staged changes found.".yellow());
     } else {
