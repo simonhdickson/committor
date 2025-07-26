@@ -14,7 +14,7 @@ name = "committor"
 path = "src/main.rs"
 
 [dependencies]
-rig-core = "0.14"
+rig-core = "0.15"
 tokio = { version = "1.46", features = ["full"] }
 clap = { version = "4.5", features = ["derive", "env"] }
 serde = { version = "1.0", features = ["derive"] }
